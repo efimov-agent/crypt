@@ -19,7 +19,7 @@ Terminal: large font (≥ 18 pt), dark theme. Browser: 1280×800, zoom 125 %.
 
 - Prepare data beforehand. Haunted Inventory has no create-item page: create the item via
   the API and add stock with a movement, e.g.
-  `curl -X POST https://haunted.efimomax-sandbox.de/api/items -H 'Content-Type: application/json' -d '{"name":"Vampire cape","sku":"CAPE-01","reorderLevel":2}'`,
+  `curl -X POST https://haunted.efimomax-sandbox.de/api/items -H 'Content-Type: application/json' -d '{"name":"Ghost lantern","sku":"LANT-31","reorderLevel":2}'`,
   then on the item page record "Received +3".
   Seance Scheduler: one active medium (e.g. "Madame Vex") via /mediums.
 - Hook demo (1:05): needs Kiro credits (Free credits reset on 01.12, or Pro). Run it in a
