@@ -1,5 +1,6 @@
 using CryptApp.Web.Data;
 using CryptApp.Web.Features.Items;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,9 +9,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents();
 builder.Services.AddEndpointsApiExplorer();
 
+// App_Data holds the SQLite database and Data Protection keys (a volume in Docker)
+var dataDir = Path.Combine(builder.Environment.ContentRootPath, "App_Data");
+Directory.CreateDirectory(dataDir);
+
+// Persist Data Protection keys so antiforgery tokens survive container restarts
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(dataDir, "keys")));
+
 // Configure EF Core with SQLite
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? "Data Source=App_Data/app.db";
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? $"Data Source={Path.Combine(dataDir, "app.db")}";
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
 
@@ -19,8 +28,7 @@ builder.Services.AddScoped<ItemsService>();
 
 var app = builder.Build();
 
-// Ensure the SQLite folder exists and apply pending migrations on startup
-Directory.CreateDirectory(Path.Combine(app.Environment.ContentRootPath, "App_Data"));
+// Apply pending migrations on startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();

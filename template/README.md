@@ -46,7 +46,7 @@ The application will be available at `http://localhost:5000`.
 dotnet test
 
 # Run with coverage
-dotnet test --collect:"XPlat Code Coverage"
+dotnet test
 ```
 
 ## Local Development

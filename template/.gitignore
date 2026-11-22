@@ -46,9 +46,6 @@ ehthumbs.db
 *.bak
 *.swp
 
-# Template config (for reference only in repo)
-.template.config/
-
 # Secrets (never commit)
 *.pfx
 *.key

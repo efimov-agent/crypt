@@ -7,9 +7,9 @@ public static class ItemsEndpoints
         var group = app.MapGroup("/api/items");
         
         group.MapGet("/", GetItems);
-        group.MapGet("/{id}", GetItem);
+        group.MapGet("/{id:int}", GetItem);
         group.MapPost("/", CreateItem);
-        group.MapDelete("/{id}", DeleteItem);
+        group.MapDelete("/{id:int}", DeleteItem);
     }
 
     private static async Task<IResult> GetItems(ItemsService service, ILogger<ItemsService> logger, CancellationToken cancellationToken)
@@ -45,7 +45,7 @@ public static class ItemsEndpoints
             return Results.ValidationProblem(errors);
         }
 
-        var created = await service.CreateItemAsync(request.Name!.Trim(), request.Description, cancellationToken);
+        var created = await service.CreateItemAsync(request.Name!.Trim(), string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(), cancellationToken);
 
         logger.LogInformation("Created item {Id}", created.Id);
         return Results.Created($"/api/items/{created.Id}", created);

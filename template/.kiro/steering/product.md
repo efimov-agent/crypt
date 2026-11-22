@@ -54,7 +54,7 @@ These colors meet WCAG AA contrast requirements.
 - ASP.NET Core 10 with Blazor Web App (static SSR)
 - EF Core 10 with SQLite (default) and PostgreSQL (optional)
 - Minimal APIs under `/api`
-- xUnit tests with in-memory database
+- xUnit integration tests against a temporary SQLite database
 - Docker multi-stage build with non-root user
 - docker-compose.yml for local development
 - Kiro integration (.kiro folder with steering, hooks, agents)

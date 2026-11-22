@@ -1,0 +1,46 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/templating/main/schema.json",
+  "author": "Crypt contributors",
+  "classifications": ["Web", "Blazor", "ASP.NET Core", "EF Core"],
+  "name": "Crypt",
+  "shortName": "crypt",
+  "description": "A Kiro-ready .NET 10 skeleton for small business web apps with Halloween theme",
+  "defaultName": "CryptApp",
+  "identity": "Kiro.Crypt",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "CryptApp",
+  "symbols": {
+    "title": {
+      "type": "parameter",
+      "datatype": "string",
+      "replaces": "Crypt Application",
+      "defaultValue": "Crypt Application"
+    },
+    "description": {
+      "type": "parameter",
+      "datatype": "string",
+      "replaces": "A Kiro-ready .NET 10 web app",
+      "defaultValue": "A Kiro-ready .NET 10 web app"
+    }
+  },
+  "sources": [
+    {
+      "source": "./",
+      "target": "./",
+      "modifiers": {
+        "exclude": [
+          "**/bin/**",
+          "**/obj/**",
+          "**/App_Data/**",
+          ".template.config/**",
+          "**/*.user",
+          "**/.vs/**",
+          "**/TestResults/**"
+        ]
+      }
+    }
+  ]
+}

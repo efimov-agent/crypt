@@ -89,6 +89,7 @@ public class ItemsTests : IClassFixture<TestDatabaseFixture>
     public async Task DeleteItem_RemovesItem_ThenReturns404()
     {
         var create = await _client.PostAsJsonAsync("/api/items", new { name = "Doomed" });
+        Assert.Equal(HttpStatusCode.Created, create.StatusCode);
         var location = create.Headers.Location;
 
         var delete = await _client.DeleteAsync(location);
@@ -104,5 +105,26 @@ public class ItemsTests : IClassFixture<TestDatabaseFixture>
         var response = await _client.GetAsync("/api/items/999999");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetItem_NonNumericId_Returns404()
+    {
+        var response = await _client.GetAsync("/api/items/abc");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateItem_BlankDescription_IsStoredAsNull_AndTimestampIsUtc()
+    {
+        var response = await _client.PostAsJsonAsync("/api/items", new { name = "Candle", description = "   " });
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        var json = await _client.GetStringAsync(response.Headers.Location);
+        var fetched = System.Text.Json.JsonDocument.Parse(json).RootElement;
+
+        Assert.Equal(System.Text.Json.JsonValueKind.Null, fetched.GetProperty("description").ValueKind);
+        Assert.EndsWith("Z", fetched.GetProperty("createdAt").GetString());
     }
 }

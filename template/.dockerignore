@@ -1,39 +1,39 @@
 # Build artifacts
-bin/
-obj/
-out/
+**/bin/
+**/obj/
+**/out/
 
 # IDE
 .vs/
 .vscode/
 .idea/
-*.user
-*.suo
+**/*.user
+**/*.suo
 
 # Git
 .git/
 .gitignore
 
 # Test results
-TestResults/
-coverage/
+**/TestResults/
+**/coverage/
 
 # Logs
 *.log
 logs/
 
 # Database files
-*.db
-*.db-shm
-*.db-wal
-App_Data/
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/App_Data/
 
 # Packages
 packages/
 *.nupkg
 
 # Node files (if any)
-node_modules/
+**/node_modules/
 npm-debug.log
 
 # OS files
