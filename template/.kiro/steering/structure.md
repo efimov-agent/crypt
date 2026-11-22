@@ -42,7 +42,7 @@ CryptApp/
 │       └── CryptApp.Tests.csproj
 ├── .kiro/
 │   ├── steering/
-│   ├── hooks/dotnet.json
+│   ├── hooks/       # dotnet.json (Kiro IDE), guard-migrations.sh (used by agent hooks in Kiro CLI)
 │   ├── agents/      # feature-scaffold.json, migrations.json
 │   └── prompts/     # agent system prompts
 ├── Dockerfile

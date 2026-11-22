@@ -88,7 +88,7 @@ Small, verifiable tasks for implementing the Stock Tracking feature. Each task s
 
 ---
 
-- [ ] 7. Add Unit Tests for StockMovementsService
+- [x] 7. Add Unit Tests for StockMovementsService
   - Create `tests/HauntedInventory.Tests/Features/StockMovementsTests.cs` using `TestDatabaseFixture`
   - Write tests covering:
     - **RecordMovement - Quantity Constraint**: negative result throws `InvalidOperationException`; valid movement updates quantity
@@ -104,7 +104,7 @@ Small, verifiable tasks for implementing the Stock Tracking feature. Each task s
 
 ---
 
-- [ ] 8. Add Integration Tests for Movements Endpoints
+- [x] 8. Add Integration Tests for Movements Endpoints
   - Add to `tests/HauntedInventory.Tests/Features/StockMovementsTests.cs` or separate `MovementsEndpointsTests.cs`
   - Use `WebApplicationFactory` and `TestDatabaseFixture` pattern (reference `ItemsTests.cs`)
   - Write integration tests:
@@ -117,7 +117,7 @@ Small, verifiable tasks for implementing the Stock Tracking feature. Each task s
 
 ---
 
-- [ ] 9. Update POST /api/items for Stock Attributes
+- [x] 9. Update POST /api/items for Stock Attributes
   - Extend `CreateItemRequest`: add `Sku` (required, normalized with Trim+ToUpperInvariant before validation) and `ReorderLevel` (optional, default 0)
   - Update `ItemsEndpoints` POST handler:
     - Validate SKU format (3–32 chars, uppercase alphanumeric + dash)

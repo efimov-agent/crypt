@@ -35,7 +35,7 @@
     },
     {
       "name": "guard-migrations",
-      "trigger": "PostToolUse",
+      "trigger": "PreToolUse",
       "matcher": "^(fs_write|fs_append|str_replace)$",
       "action": {
         "type": "command",
