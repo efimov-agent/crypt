@@ -17,13 +17,18 @@ public class TestDatabaseFixture : WebApplicationFactory<Program>
 {
     private readonly string _dbPath = Path.Combine(Path.GetTempPath(), $"crypt_test_{Guid.NewGuid():N}.db");
 
+    public string DbPath => _dbPath;
+
+    /// <summary>Extra connection-string options for derived fixtures (e.g. a short busy timeout).</summary>
+    protected virtual string ConnectionOptions => "";
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite($"Data Source={_dbPath};Pooling=False"));
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite($"Data Source={_dbPath};Pooling=False{ConnectionOptions}"));
         });
     }
 

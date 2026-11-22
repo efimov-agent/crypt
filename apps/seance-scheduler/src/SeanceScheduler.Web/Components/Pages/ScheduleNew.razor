@@ -85,7 +85,7 @@
 
     private IReadOnlyList<MediumDto> _activeMediums = [];
     private MediumDto? _chosenInactive;
-    private Dictionary<string, string[]> _errors = [];
+    private IReadOnlyDictionary<string, string[]> _errors = new Dictionary<string, string[]>();
     private string? _formError;
 
     protected override async Task OnInitializedAsync()
@@ -114,7 +114,7 @@
         {
             await SeancesService.BookSeanceAsync(mediumId, Form.ClientName!, startsAt, endsAt, Aborted);
         }
-        catch (ValidationException ex)
+        catch (RequestValidationException ex)
         {
             _errors = ex.Errors;
             SetStatus(StatusCodes.Status400BadRequest);

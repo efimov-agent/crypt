@@ -21,7 +21,7 @@ public class MediumsService
 
     public async Task<IReadOnlyList<MediumDto>> GetMediumsAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Fetching all mediums at {Time}", DateTime.UtcNow);
+        _logger.LogInformation("Fetching all mediums");
 
         return await _dbContext.Mediums
             .OrderBy(m => m.Name)
@@ -31,7 +31,7 @@ public class MediumsService
 
     public async Task<MediumDto?> GetMediumByIdAsync(int id, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Fetching medium {MediumId} at {Time}", id, DateTime.UtcNow);
+        _logger.LogInformation("Fetching medium {MediumId}", id);
 
         var medium = await _dbContext.Mediums.FindAsync([id], cancellationToken);
         if (medium == null)
@@ -45,7 +45,7 @@ public class MediumsService
 
     public async Task<MediumDto> CreateMediumAsync(string name, string? specialty, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Creating medium {Name} at {Time}", name, DateTime.UtcNow);
+        _logger.LogInformation("Creating medium {Name}", name);
 
         var trimmedName = name.Trim();
         var trimmedSpecialty = string.IsNullOrWhiteSpace(specialty) ? null : specialty.Trim();
@@ -89,7 +89,7 @@ public class MediumsService
 
     public async Task<MediumDto> DeactivateMediumAsync(int id, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Deactivating medium {MediumId} at {Time}", id, DateTime.UtcNow);
+        _logger.LogInformation("Deactivating medium {MediumId}", id);
 
         var medium = await _dbContext.Mediums.FindAsync([id], cancellationToken);
         if (medium == null)

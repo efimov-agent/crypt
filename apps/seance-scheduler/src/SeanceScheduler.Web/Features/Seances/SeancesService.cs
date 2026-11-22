@@ -20,8 +20,8 @@ public class SeancesService
 
     public async Task<IReadOnlyList<SeanceDto>> GetSeancesAsync(int? mediumId, DateTime? from, DateTime? to, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Fetching seances at {Time}. Filters: mediumId={MediumId}, from={From}, to={To}",
-            DateTime.UtcNow, mediumId, from, to);
+        _logger.LogInformation("Fetching seances. Filters: mediumId={MediumId}, from={From}, to={To}",
+            mediumId, from, to);
 
         from = UtcTime.Normalize(from);
         to = UtcTime.Normalize(to);
@@ -29,7 +29,7 @@ public class SeancesService
         // Validate query parameters
         if (from.HasValue && to.HasValue && from.Value > to.Value)
         {
-            throw new ValidationException(new Dictionary<string, string[]>
+            throw new RequestValidationException(new Dictionary<string, string[]>
             {
                 [nameof(from)] = ["'from' date must be before 'to' date."],
                 [nameof(to)] = ["'to' date must be after 'from' date."]
@@ -66,7 +66,7 @@ public class SeancesService
 
     public async Task<SeanceDto> BookSeanceAsync(int mediumId, string clientName, DateTime startsAt, DateTime endsAt, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Booking seance for medium {MediumId} at {Time}", mediumId, DateTime.UtcNow);
+        _logger.LogInformation("Booking seance for medium {MediumId}", mediumId);
 
         // Convert input times to UTC for validation
         var startsAtUtc = UtcTime.Normalize(startsAt);
@@ -125,7 +125,7 @@ public class SeancesService
 
     public async Task<SeanceDto> CancelSeanceAsync(int id, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Cancelling seance {SeanceId} at {Time}", id, DateTime.UtcNow);
+        _logger.LogInformation("Cancelling seance {SeanceId}", id);
 
         var now = _timeProvider.GetUtcNow().UtcDateTime;
 
@@ -221,7 +221,7 @@ public class SeancesService
 
         if (errors.Count > 0)
         {
-            throw new ValidationException(errors.ToDictionary(kv => kv.Key, kv => kv.Value.ToArray()));
+            throw new RequestValidationException(errors.ToDictionary(kv => kv.Key, kv => kv.Value.ToArray()));
         }
     }
 }

@@ -1,4 +1,5 @@
 using SeanceScheduler.Web.Data;
+using SeanceScheduler.Web.Features.Common;
 using SeanceScheduler.Web.Features.Items;
 using SeanceScheduler.Web.Features.Mediums;
 using SeanceScheduler.Web.Features.Seances;
@@ -56,7 +57,13 @@ app.UseWhen(
         branch.UseExceptionHandler(new ExceptionHandlerOptions
         {
             // Binding failures (bad query value, malformed JSON) are client errors, not 500s
-            StatusCodeSelector = ex => ex is BadHttpRequestException bad ? bad.StatusCode : StatusCodes.Status500InternalServerError,
+            // A database locked by another writer past the busy timeout is transient: 503 so clients may retry.
+            StatusCodeSelector = ex => ex switch
+            {
+                BadHttpRequestException bad => bad.StatusCode,
+                _ when SqliteErrors.IsBusy(ex) => StatusCodes.Status503ServiceUnavailable,
+                _ => StatusCodes.Status500InternalServerError,
+            },
         });
         branch.UseStatusCodePages();
     });

@@ -32,7 +32,6 @@ public static class MediumsEndpoints
 
         if (medium == null)
         {
-            logger.LogWarning("Medium {Id} not found", id);
             return ApiProblems.NotFound($"Medium {id} not found", $"/api/mediums/{id}");
         }
 
@@ -54,12 +53,10 @@ public static class MediumsEndpoints
                 string.IsNullOrWhiteSpace(request.Specialty) ? null : request.Specialty.Trim(),
                 cancellationToken);
 
-            logger.LogInformation("Created medium {Id}", created.Id);
             return Results.Created($"/api/mediums/{created.Id}", created);
         }
         catch (ConflictException ex)
         {
-            logger.LogWarning("Conflict creating medium: {Message}", ex.Message);
             return ApiProblems.Conflict(ex.Message, "/api/mediums");
         }
     }
@@ -71,12 +68,10 @@ public static class MediumsEndpoints
         try
         {
             var deactivated = await service.DeactivateMediumAsync(id, cancellationToken);
-            logger.LogInformation("Deactivated medium {Id}", id);
             return Results.Ok(deactivated);
         }
         catch (NotFoundException ex)
         {
-            logger.LogWarning("Medium {Id} not found for deactivation: {Message}", id, ex.Message);
             return ApiProblems.NotFound(ex.Message, $"/api/mediums/{id}/deactivate");
         }
     }

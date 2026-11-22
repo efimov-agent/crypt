@@ -17,7 +17,7 @@ public class ItemsService
 
     public async Task<IReadOnlyList<Item>> GetItemsAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Fetching all items at {Time}", DateTime.UtcNow);
+        _logger.LogInformation("Fetching all items");
         
         return await _dbContext.Items
             .OrderBy(i => i.Name)
@@ -26,7 +26,7 @@ public class ItemsService
 
     public async Task<Item?> GetItemByIdAsync(int id, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Fetching item {ItemId} at {Time}", id, DateTime.UtcNow);
+        _logger.LogInformation("Fetching item {ItemId}", id);
         
         return await _dbContext.Items.FindAsync([id], cancellationToken);
     }
@@ -48,7 +48,7 @@ public class ItemsService
 
     public async Task<bool> DeleteItemAsync(int id, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Deleting item {ItemId} at {Time}", id, DateTime.UtcNow);
+        _logger.LogInformation("Deleting item {ItemId}", id);
         
         var item = await _dbContext.Items.FindAsync([id], cancellationToken);
         if (item == null)

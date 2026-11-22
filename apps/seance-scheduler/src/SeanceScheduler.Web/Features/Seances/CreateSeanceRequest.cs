@@ -1,7 +1,8 @@
 namespace SeanceScheduler.Web.Features.Seances;
 
 /// <summary>
-/// Input contract for POST /api/seances
+/// Input contract for POST /api/seances. Only checks shape (required values, order, name length);
+/// duration and slot-grid rules live in <see cref="SeancesService"/>, which applies them on UTC values.
 /// </summary>
 public sealed record CreateSeanceRequest(int MediumId, string? ClientName, DateTime StartsAt, DateTime EndsAt)
 {
@@ -36,29 +37,6 @@ public sealed record CreateSeanceRequest(int MediumId, string? ClientName, DateT
         if (StartsAt != default && EndsAt != default && StartsAt >= EndsAt)
         {
             errors[nameof(EndsAt)] = ["End time must be after start time."];
-        }
-
-        if (StartsAt != default && EndsAt != default && StartsAt < EndsAt)
-        {
-            var duration = (EndsAt - StartsAt).TotalMinutes;
-            if (duration < MinDurationMinutes)
-            {
-                errors[nameof(EndsAt)] = [$"Duration must be at least {MinDurationMinutes} minutes."];
-            }
-            else if (duration > MaxDurationMinutes)
-            {
-                errors[nameof(EndsAt)] = [$"Duration must be at most {MaxDurationMinutes} minutes."];
-            }
-            else if (duration % DurationIncrementMinutes != 0)
-            {
-                errors[nameof(EndsAt)] = [$"Duration must be a multiple of {DurationIncrementMinutes} minutes."];
-            }
-
-            // Check 15-minute boundary for StartsAt
-            if (!Common.UtcTime.IsOnBoundary(StartsAt, DurationIncrementMinutes))
-            {
-                errors[nameof(StartsAt)] = ["Start time must be on a 15-minute boundary (e.g., 14:00, 14:15, 14:30, 14:45)."];
-            }
         }
 
         return errors;

@@ -28,10 +28,9 @@ public static class SeancesEndpoints
         try
         {
             var seances = await service.GetSeancesAsync(mediumId, from, to, cancellationToken);
-            logger.LogInformation("Returning {Count} seances", seances.Count);
             return Results.Ok(seances);
         }
-        catch (ValidationException ex)
+        catch (RequestValidationException ex)
         {
             logger.LogWarning("Invalid query parameters: {Errors}", string.Join(", ", ex.Errors.SelectMany(kv => kv.Value)));
             return Results.ValidationProblem(ex.Errors);
@@ -56,20 +55,17 @@ public static class SeancesEndpoints
                 request.EndsAt,
                 cancellationToken);
 
-            logger.LogInformation("Created seance {Id}", created.Id);
             return Results.Created($"/api/seances/{created.Id}", created);
         }
         catch (NotFoundException ex)
         {
-            logger.LogWarning("Not found creating seance: {Message}", ex.Message);
             return ApiProblems.NotFound(ex.Message, "/api/seances");
         }
         catch (ConflictException ex)
         {
-            logger.LogWarning("Conflict creating seance: {Message}", ex.Message);
             return ApiProblems.Conflict(ex.Message, "/api/seances");
         }
-        catch (ValidationException ex)
+        catch (RequestValidationException ex)
         {
             logger.LogWarning("Validation error creating seance: {Errors}", string.Join(", ", ex.Errors.SelectMany(kv => kv.Value)));
             return Results.ValidationProblem(ex.Errors);
@@ -83,17 +79,14 @@ public static class SeancesEndpoints
         try
         {
             var cancelled = await service.CancelSeanceAsync(id, cancellationToken);
-            logger.LogInformation("Cancelled seance {Id}", id);
             return Results.Ok(cancelled);
         }
         catch (NotFoundException ex)
         {
-            logger.LogWarning("Seance {Id} not found for cancellation: {Message}", id, ex.Message);
             return ApiProblems.NotFound(ex.Message, $"/api/seances/{id}/cancel");
         }
         catch (ConflictException ex)
         {
-            logger.LogWarning("Conflict cancelling seance {Id}: {Message}", id, ex.Message);
             return ApiProblems.Conflict(ex.Message, $"/api/seances/{id}/cancel");
         }
     }

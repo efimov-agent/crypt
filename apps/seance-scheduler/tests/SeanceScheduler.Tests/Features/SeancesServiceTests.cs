@@ -72,7 +72,7 @@ public class SeancesServiceTests : IAsyncLifetime
     [InlineData(40)] // not a multiple of 15
     public async Task Book_InvalidDuration_ThrowsValidationOnEndsAt(int minutes)
     {
-        var ex = await Assert.ThrowsAsync<ValidationException>(() => BookAsync(At(14), At(14).AddMinutes(minutes)));
+        var ex = await Assert.ThrowsAsync<RequestValidationException>(() => BookAsync(At(14), At(14).AddMinutes(minutes)));
 
         Assert.Equal(["EndsAt"], ex.Errors.Keys);
         Assert.Equal(0, await CountScheduledAsync());
@@ -109,7 +109,7 @@ public class SeancesServiceTests : IAsyncLifetime
     {
         var start = At(14, minute).AddSeconds(second);
 
-        var ex = await Assert.ThrowsAsync<ValidationException>(() => BookAsync(start, start.AddMinutes(30)));
+        var ex = await Assert.ThrowsAsync<RequestValidationException>(() => BookAsync(start, start.AddMinutes(30)));
 
         Assert.Contains("StartsAt", ex.Errors.Keys);
     }
@@ -119,7 +119,7 @@ public class SeancesServiceTests : IAsyncLifetime
     {
         var past = SqliteFileDatabase.Now.UtcDateTime.AddHours(-2); // 10:00, on the grid
 
-        var ex = await Assert.ThrowsAsync<ValidationException>(() => BookAsync(past, past.AddMinutes(60)));
+        var ex = await Assert.ThrowsAsync<RequestValidationException>(() => BookAsync(past, past.AddMinutes(60)));
 
         Assert.Contains("StartsAt", ex.Errors.Keys);
     }
@@ -129,7 +129,7 @@ public class SeancesServiceTests : IAsyncLifetime
     {
         var start = SqliteFileDatabase.Now.UtcDateTime.AddHours(-2).AddMinutes(10);
 
-        var ex = await Assert.ThrowsAsync<ValidationException>(() => BookAsync(start, start.AddMinutes(30)));
+        var ex = await Assert.ThrowsAsync<RequestValidationException>(() => BookAsync(start, start.AddMinutes(30)));
 
         Assert.Equal(2, ex.Errors["StartsAt"].Length);
     }
@@ -139,7 +139,7 @@ public class SeancesServiceTests : IAsyncLifetime
     {
         var now = SqliteFileDatabase.Now.UtcDateTime;
 
-        await Assert.ThrowsAsync<ValidationException>(() => BookAsync(now, now.AddMinutes(30)));
+        await Assert.ThrowsAsync<RequestValidationException>(() => BookAsync(now, now.AddMinutes(30)));
     }
 
     [Fact]
@@ -311,7 +311,7 @@ public class SeancesServiceTests : IAsyncLifetime
     [Fact]
     public async Task GetSeances_FromAfterTo_ThrowsValidation()
     {
-        await Assert.ThrowsAsync<ValidationException>(() => ListAsync(from: At(15), to: At(14)));
+        await Assert.ThrowsAsync<RequestValidationException>(() => ListAsync(from: At(15), to: At(14)));
     }
 
     [Fact]
@@ -370,5 +370,50 @@ public class SeancesServiceTests : IAsyncLifetime
 
         Assert.Equal(1, results.Count(r => r));
         Assert.Equal(1, results.Count(r => !r));
+    }
+
+    [Fact]
+    public async Task Book_RacingDeactivation_EitherBooksBeforeOrConflictsAfter()
+    {
+        // Booking reads IsActive inside BEGIN IMMEDIATE, deactivation is a write: the two are serialized,
+        // so a booking either commits before the deactivation or sees the medium inactive (409) — never a lock error.
+        const int rounds = 10;
+        for (var round = 0; round < rounds; round++)
+        {
+            var mediumId = await CreateMediumAsync($"Racer {round}");
+            var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            var booking = Task.Run(async () =>
+            {
+                await gate.Task;
+                try
+                {
+                    await BookAsync(At(14), At(15), mediumId);
+                    return true;
+                }
+                catch (ConflictException)
+                {
+                    return false;
+                }
+            });
+            var deactivation = Task.Run(async () =>
+            {
+                await gate.Task;
+                await using var db = _database.CreateContext();
+                await _database.CreateMediumsService(db).DeactivateMediumAsync(mediumId, CancellationToken.None);
+            });
+
+            gate.SetResult();
+            var booked = await booking;
+            await deactivation;
+
+            await using var check = _database.CreateContext();
+            Assert.False((await check.Mediums.SingleAsync(m => m.Id == mediumId)).IsActive);
+            Assert.Equal(booked ? 1 : 0, await check.Seances.CountAsync(s => s.MediumId == mediumId));
+
+            // Once deactivation has committed, booking is always refused.
+            var ex = await Assert.ThrowsAsync<ConflictException>(() => BookAsync(At(16), At(17), mediumId));
+            Assert.Contains("inactive", ex.Message);
+        }
     }
 }
