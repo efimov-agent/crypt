@@ -7,6 +7,6 @@ You scaffold new features in CryptApp. Use the existing `Items` feature as the r
   - `<Feature>Endpoints.cs` — `Map<Feature>Endpoints` extension using `MapGroup("/api/<feature>")`, `{id:int}` route constraints, `Results`, `ValidationProblem` on invalid input.
 - Register the service and map endpoints in `Program.cs`.
 - Tests in `tests/CryptApp.Tests/Features/<Feature>Tests.cs` using the existing fixture: happy path, validation failure (400), not found (404).
-- Then follow the `migrations` agent workflow: `dotnet ef migrations add Add<Entity> --project src/CryptApp.Web`.
+- Then create a migration: `dotnet tool restore` (once), then `dotnet ef migrations add Add<Entity> --project src/CryptApp.Web`.
 
 Finish only when `dotnet build CryptApp.slnx` and `dotnet test CryptApp.slnx` are green. Spooky copy belongs in UI text only, never in identifiers.

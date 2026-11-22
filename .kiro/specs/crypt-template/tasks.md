@@ -329,7 +329,7 @@
 
 ---
 
-> Phase 7 revision (K2): hooks consolidated into `.kiro/hooks/dotnet.json` (Kiro hooks format `v1`: build-on-save, test-on-test-save, guard-migrations); agents rewritten as validated Kiro CLI V3 configs `.kiro/agents/{migrations,feature-scaffold}.json` with prompts in `.kiro/prompts/`; `dotnet-ef` pinned in `.config/dotnet-tools.json`.
+> Phase 7 revision (K2): hooks consolidated into `.kiro/hooks/dotnet.json` (Kiro hooks format `v1`: test-on-stop, guard-migrations); agents rewritten as Kiro CLI V3 configs (format checked against the configuration reference; `kiro-cli agent list` loads them) `.kiro/agents/{migrations,feature-scaffold}.json` with prompts in `.kiro/prompts/`; `dotnet-ef` pinned in `.config/dotnet-tools.json`.
 
 ### Phase 8: Documentation and README
 
@@ -403,7 +403,7 @@
 **[9.4]** Template instantiation verification  
 *Requirement Ref:* US-012  
 *Description:* Test template parameter substitution:
-- Run `dotnet new crypt -n TestApp --desc "Test Description"`
+- Run `dotnet new crypt -n TestApp --description "Test Description"`
 - Verify project name is "TestApp" in namespaces and folders
 - Verify description appears in README and docker-compose
 - Verify app builds and runs  
@@ -433,7 +433,7 @@
 **[10.1]** Create template.json with all parameters and symbols  
 *Requirement Ref:* US-012  
 *Description:* Update `.template.config/template.json` with:
-- All template parameters (name, title, desc, author, etc.)
+- All template parameters (name, title, description)
 - Symbol definitions with defaults and replacements
 - Post-action scripts (optional: run dotnet restore, dotnet build)  
 *Verification:* `dotnet new crypt --help` shows all parameters; `dotnet new crypt -n X` works correctly.
@@ -456,9 +456,9 @@
 3. `dotnet test`
 4. `dotnet run` (verify app starts)
 5. `docker-compose up` (verify Docker works)
-6. Open in Kiro IDE (verify `.kiro/` hooks and agents work)  
+6. Open in Kiro (verify `.kiro/` hooks and agents work) — partial: agents load in kiro-cli (`agent list`), hooks not yet observed firing; to be confirmed while building K3 apps  
 *Verification:* All steps succeed without manual intervention.
-*Status:* [x] Complete
+*Status:* [~] Steps 1–5 done (nupkg install, build, 12 tests, run, compose); step 6 partial
 
 ---
 
@@ -466,9 +466,9 @@
 
 - [x] Template creates buildable, testable, runnable project from `dotnet new crypt -n <Name>`
 - [x] Generated project follows all tech stack conventions (nullable types, warnings as errors, async, logging)
-- [x] EF Core 10 configured with SQLite default and PostgreSQL optional support
+- [x] EF Core 10 configured with SQLite (PostgreSQL switch documented as manual steps)
 - [x] Blazor SSR + minimal API endpoints working
-- [x] xUnit tests with in-memory EF Core passing
+- [x] xUnit tests with a temporary SQLite database passing
 - [x] Multi-stage Docker build produces non-root image
 - [x] `.kiro/` folder with steering, hooks, and agents ready for use
 - [x] README is clear and complete; app runs locally within 5 minutes of following instructions

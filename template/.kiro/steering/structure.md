@@ -1,4 +1,4 @@
-# Crypt Template - Project Structure
+# CryptApp - Project Structure
 
 ## Generated Project Structure
 
@@ -73,8 +73,6 @@ dotnet test
 # Run specific project
 dotnet run --project src/MyApp.Web
 
-# Run tests with coverage
-dotnet test --collect:"XPort Code Coverage"
 ```
 
 ## Key Files

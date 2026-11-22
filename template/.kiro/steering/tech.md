@@ -1,15 +1,15 @@
-# Crypt Template - Technical Guide
+# CryptApp - Technical Guide
 
 ## Overview
 
-Crypt is a `dotnet new` template for small business web apps built on .NET 10 with ASP.NET Core and Blazor.
+CryptApp is a small business web app built on .NET 10 with ASP.NET Core and Blazor.
 
 ## Tech Stack
 
 - **.NET 10** with C# latest
 - **ASP.NET Core** with Blazor Web App (static SSR)
-- **Entity Framework Core 10** with SQLite (default) or PostgreSQL (optional)
-- **xUnit** for testing with in-memory database
+- **Entity Framework Core 10** with SQLite (PostgreSQL needs the Npgsql provider and its own migrations, see README)
+- **xUnit** for integration tests against a temporary SQLite database file (`WebApplicationFactory`)
 
 ## Key Conventions
 

@@ -13,13 +13,10 @@ A Kiro-ready .NET 10 web app built with ASP.NET Core, Blazor, and Entity Framewo
 
 ## Getting Started
 
-### Clone and Build
+### Restore and Build
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd CryptApp
-
+# From the solution folder (created by `dotnet new crypt -n CryptApp`)
 # Restore dependencies
 dotnet restore
 
@@ -43,9 +40,6 @@ The application will be available at `http://localhost:5000`.
 
 ```bash
 # Run all tests
-dotnet test
-
-# Run with coverage
 dotnet test
 ```
 
@@ -97,7 +91,11 @@ The application will be available at `http://localhost:5000`.
 
 ### Enable PostgreSQL
 
-To use PostgreSQL instead of SQLite, uncomment the `postgres` service in `docker-compose.yml` and update the connection string in `Program.cs`.
+The app is configured for SQLite only. Switching to PostgreSQL is a manual change:
+
+1. Add the provider: `dotnet add src/CryptApp.Web package Npgsql.EntityFrameworkCore.PostgreSQL`.
+2. In `Program.cs`, replace `UseSqlite(...)` with `UseNpgsql(...)` and point the connection string at the `postgres` service (uncomment it in `docker-compose.yml`).
+3. Delete `src/CryptApp.Web/Migrations/` and create a fresh initial migration - SQLite migrations are not portable to PostgreSQL.
 
 ## Project Structure
 
@@ -127,8 +125,8 @@ This project includes Kiro configuration:
 
 - **Steering** (`.kiro/steering/`): `tech.md`, `structure.md`, `product.md` - always-included guides for stack, layout and UI tone.
 - **Hooks** (`.kiro/hooks/dotnet.json`, hooks format `v1`):
-  - `test-on-stop` - when the agent finishes a turn, runs `dotnet test` once (builds and tests; can take ~30-60 s). Set `"enabled": false` on the hook to turn it off.
-  - `guard-migrations` - when the agent edits a file under `Migrations/`, asks it to revert and create a new migration instead. Agent-type hook actions are an IDE feature; Kiro CLI (3.5) may skip them.
+  - `test-on-stop` - when the agent finishes a turn, runs `dotnet test` once (builds and tests; output goes to stderr so failures reach the agent; can take ~30-60 s). Set `"enabled": false` on the hook to turn it off.
+  - `guard-migrations` - when the agent edits a file under `Migrations/`, asks it to revert and create a new migration instead.
 - **Custom agents** (`.kiro/agents/*.json`, prompts in `.kiro/prompts/`):
   - `feature-scaffold` - adds a vertical-slice feature (entity, DTO, service, endpoints, tests) mirroring `Items`;
   - `migrations` - creates and reviews EF Core migrations, flags data loss.

@@ -1,60 +1,41 @@
-# Crypt Template - Product Guide
+# CryptApp - Product Guide
 
 ## Overview
 
-Crypt is a Kiro-ready .NET 10 skeleton template for small business web apps. It generates a complete project structure with ASP.NET Core, Blazor, EF Core, and Docker support.
+CryptApp is a small business web app built on .NET 10: ASP.NET Core, Blazor (static SSR), EF Core with SQLite and Docker. It was generated from the Crypt `dotnet new` template; the `Items` feature is the reference implementation for new features.
 
 ## Theme
 
-The template has a Halloween theme that is:
+The UI has a Halloween theme that is:
 - **Tasteful**: Spooky but professional
 - **Dark UI**: Dark backgrounds with accent colors
 - **Accessible**: WCAG AA contrast compliance
 
 ## Halloween Naming Convention
 
-**UI Copy Only**: Spooky naming should only appear in user-facing copy (UI labels, messages, headers). 
+**UI Copy Only**: Spooky naming should only appear in user-facing copy (UI labels, messages, headers).
 
 **Never in Code**: Code identifiers (classes, methods, variables, namespaces) must use clear, professional naming:
 - ✅ `ItemsService` (not `GhostService`)
 - ✅ `GetItemsAsync` (not `SummonItemsAsync`)
 - ✅ `ApplicationDbContext` (not `CryptContext`)
 
-## Example App Names
-
-The template can generate two distinct apps:
-- **haunted-inventory**: Stock tracking for costume/prop rental shop (items, rentals, overdue "haunting" alerts)
-- **seance-scheduler**: Booking of time slots for sessions with hosts (hosts, slots, bookings)
-
-## Template Parameters
-
-When generating a project:
-- `--name` or `-n`: Project name (used for namespaces and folder names)
-- `--title`: Display title for the application
-- `--description`: Project description
-- `--author`: Author name
-
-Example:
-```bash
-dotnet new crypt -n HauntedInventory --title "Haunted Inventory" --desc "Stock tracking for rental shop"
-```
-
 ## UI Styling
 
-The generated app includes a dark theme with:
+The app uses a dark theme (`wwwroot/styles.css`):
 - Background: `#0f0f1a` (dark navy/black)
 - Sidebar: `#1a1a2e`
 - Accent: `#e94560` (red/pink)
 - Text: `#eaeaea` (light gray)
 
-These colors meet WCAG AA contrast requirements.
+Keep new colors at WCAG AA contrast (4.5:1 for body text).
 
 ## What's Included
 
 - ASP.NET Core 10 with Blazor Web App (static SSR)
-- EF Core 10 with SQLite (default) and PostgreSQL (optional)
-- Minimal APIs under `/api`
-- xUnit integration tests against a temporary SQLite database
-- Docker multi-stage build with non-root user
+- EF Core 10 with SQLite (the only configured provider; see README for switching to PostgreSQL)
+- Minimal APIs under `/api` (no authentication yet)
+- xUnit integration tests against a temporary SQLite database file
+- Docker multi-stage build running as the non-root `app` user
 - docker-compose.yml for local development
 - Kiro integration (.kiro folder with steering, hooks, agents)
