@@ -34,16 +34,13 @@ RUN dotnet publish "src/CryptApp.Web/CryptApp.Web.csproj" -c Release -o /app/pub
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
-# Create non-root user
-RUN groupadd -r app && useradd -r -g app app
-
-# Copy published files
+# Copy published files; the aspnet image ships a non-root 'app' user (UID 1654)
 COPY --from=publish /app/publish .
 
-# Set ownership
-RUN chown -R app:app /app
+# SQLite database lives in App_Data (mount a volume here to persist data)
+RUN mkdir -p /app/App_Data && chown -R app:app /app/App_Data
+VOLUME /app/App_Data
 
-# Switch to non-root user
 USER app
 
 # Expose port

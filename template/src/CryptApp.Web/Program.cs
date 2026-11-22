@@ -26,6 +26,14 @@ builder.Services.AddScoped<ItemsService>();
 
 var app = builder.Build();
 
+// Ensure the SQLite folder exists and apply pending migrations on startup
+Directory.CreateDirectory(Path.Combine(app.Environment.ContentRootPath, "App_Data"));
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await db.Database.MigrateAsync();
+}
+
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
@@ -56,6 +64,6 @@ app.MapGet("/api/health", async (CancellationToken cancellationToken) =>
     });
 });
 
-app.Run();
+await app.RunAsync();
 
 public partial class Program { }

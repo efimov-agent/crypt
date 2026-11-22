@@ -28,11 +28,11 @@ public class TestDatabaseFixture : WebApplicationFactory<Program>
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlite($"Data Source={_dbName}"));
 
-            // Ensure database is created
+            // Apply migrations (same schema path as production startup)
             var sp = services.BuildServiceProvider();
             using var scope = sp.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            db.Database.EnsureCreated();
+            db.Database.Migrate();
             
             // Seed test data
             SeedTestData(db);
