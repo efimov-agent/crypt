@@ -1,0 +1,191 @@
+@page "/mediums"
+@using SeanceScheduler.Web.Features.Common
+@using SeanceScheduler.Web.Features.Mediums
+@inject MediumsService MediumsService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Mediums · Seance Scheduler</PageTitle>
+
+<h1>Conjured Mediums</h1>
+
+@if (_notice is not null)
+{
+    <p class="notice" role="status">@_notice</p>
+}
+
+@if (_deactivateError is not null)
+{
+    <p class="error-message" role="alert">@_deactivateError</p>
+}
+
+@if (_mediums is { Count: 0 })
+{
+    <p class="empty">No mediums have answered the call yet. Summon the first one below.</p>
+}
+else if (_mediums is not null)
+{
+    <form method="post" @formname="DeactivateMedium" @onsubmit="DeactivateAsync">
+        <AntiforgeryToken />
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Specialty</th>
+                    <th scope="col">Status</th>
+                    <th scope="col"><span class="visually-hidden">Actions</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var medium in _mediums)
+                {
+                    <tr class="@(medium.IsActive ? null : "inactive")">
+                        <td>@medium.Name</td>
+                        <td>@(medium.Specialty ?? "—")</td>
+                        <td>@(medium.IsActive ? "Active" : "Departed")</td>
+                        <td>
+                            @if (medium.IsActive)
+                            {
+                                <button type="submit" class="btn btn-secondary" name="DeactivateId" value="@medium.Id"
+                                        aria-label="Deactivate @medium.Name">Deactivate</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </form>
+}
+
+<section class="form-section" aria-labelledby="summon-title">
+    <h2 id="summon-title">Summon a New Medium</h2>
+
+    @if (_formError is not null)
+    {
+        <p class="error-message" role="alert" id="medium-form-error">@_formError</p>
+    }
+
+    <form method="post" @formname="CreateMedium" @onsubmit="CreateAsync" class="stacked-form" novalidate>
+        <AntiforgeryToken />
+
+        <div class="form-group">
+            <label for="medium-name">Name</label>
+            <input id="medium-name" name="Form.Name" value="@Form?.Name" maxlength="@CreateMediumRequest.NameMaxLength"
+                   aria-invalid="@Invalid("Name")" aria-describedby="@DescribedBy("Name")" />
+            @FieldErrors("Name")
+        </div>
+
+        <div class="form-group">
+            <label for="medium-specialty">Specialty (optional)</label>
+            <input id="medium-specialty" name="Form.Specialty" value="@Form?.Specialty" maxlength="@CreateMediumRequest.SpecialtyMaxLength"
+                   aria-invalid="@Invalid("Specialty")" aria-describedby="@DescribedBy("Specialty")" />
+            @FieldErrors("Specialty")
+        </div>
+
+        <button type="submit" class="btn">Summon</button>
+    </form>
+</section>
+
+@code {
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    [SupplyParameterFromQuery(Name = "created")]
+    public int? Created { get; set; }
+
+    [SupplyParameterFromQuery(Name = "deactivated")]
+    public int? Deactivated { get; set; }
+
+    [SupplyParameterFromForm(FormName = "CreateMedium")]
+    public MediumForm? Form { get; set; }
+
+    [SupplyParameterFromForm(FormName = "DeactivateMedium")]
+    public int? DeactivateId { get; set; }
+
+    private IReadOnlyList<MediumDto>? _mediums;
+    private Dictionary<string, string[]> _errors = [];
+    private string? _formError;
+    private string? _deactivateError;
+    private string? _notice;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Form ??= new();
+        _notice = Created == 1 ? "The medium has been summoned."
+            : Deactivated == 1 ? "The medium has departed to the other side."
+            : null;
+        _mediums = await MediumsService.GetMediumsAsync(CancellationToken.None);
+    }
+
+    private async Task CreateAsync()
+    {
+        Form ??= new();
+        _notice = null;
+        var request = new CreateMediumRequest(Form.Name, Form.Specialty);
+        _errors = request.Validate();
+        if (_errors.Count > 0)
+        {
+            SetStatus(StatusCodes.Status400BadRequest);
+            return;
+        }
+
+        try
+        {
+            await MediumsService.CreateMediumAsync(Form.Name!, Form.Specialty, CancellationToken.None);
+        }
+        catch (ConflictException ex)
+        {
+            _formError = ex.Message;
+            SetStatus(StatusCodes.Status409Conflict);
+            return;
+        }
+
+        // Post/Redirect/Get: a refresh must not submit the form again.
+        NavigationManager.NavigateTo("/mediums?created=1");
+    }
+
+    private async Task DeactivateAsync()
+    {
+        _notice = null;
+        if (DeactivateId is not { } id)
+        {
+            _deactivateError = "Choose a medium to deactivate.";
+            SetStatus(StatusCodes.Status400BadRequest);
+            return;
+        }
+
+        try
+        {
+            await MediumsService.DeactivateMediumAsync(id, CancellationToken.None);
+        }
+        catch (NotFoundException ex)
+        {
+            _deactivateError = ex.Message;
+            SetStatus(StatusCodes.Status404NotFound);
+            return;
+        }
+
+        NavigationManager.NavigateTo("/mediums?deactivated=1");
+    }
+
+    private string? Invalid(string field) => _errors.ContainsKey(field) ? "true" : null;
+
+    private string? DescribedBy(string field) => _errors.ContainsKey(field) ? $"medium-{field.ToLowerInvariant()}-error" : null;
+
+    private RenderFragment? FieldErrors(string field) => _errors.TryGetValue(field, out var messages)
+        ? @<span class="field-error" id="@DescribedBy(field)">@string.Join(" ", messages)</span>
+        : null;
+
+    private void SetStatus(int statusCode)
+    {
+        if (HttpContext is not null)
+        {
+            HttpContext.Response.StatusCode = statusCode;
+        }
+    }
+
+    public sealed class MediumForm
+    {
+        public string? Name { get; set; }
+        public string? Specialty { get; set; }
+    }
+}
