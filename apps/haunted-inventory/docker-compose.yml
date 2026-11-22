@@ -1,0 +1,37 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+    volumes:
+      - crypt-data:/app/App_Data
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+    networks:
+      - crypt-network
+
+  # Optional PostgreSQL service - uncomment to enable
+  # postgres:
+  #   image: postgres:16-alpine
+  #   environment:
+  #     POSTGRES_USER: cryptuser
+  #     POSTGRES_PASSWORD: cryptpassword
+  #     POSTGRES_DB: cryptdb
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   networks:
+  #     - crypt-network
+  #   ports:
+  #     - "5432:5432"
+
+networks:
+  crypt-network:
+    driver: bridge
+
+volumes:
+  crypt-data:
+  # Uncomment to enable PostgreSQL volume
+  # postgres-data:

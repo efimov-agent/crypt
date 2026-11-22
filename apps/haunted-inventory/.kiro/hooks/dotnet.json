@@ -1,0 +1,19 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "test-on-stop",
+      "description": "When the agent finishes a turn, build and run the whole test suite once (instead of building on every file save); output goes to stderr so build errors and assert messages reach the agent",
+      "trigger": "Stop",
+      "timeout": 600,
+      "action": { "type": "command", "command": "dotnet test HauntedInventory.slnx --nologo -v q 1>&2" }
+    },
+    {
+      "name": "guard-migrations",
+      "description": "Remind the agent never to hand-edit generated migration files",
+      "trigger": "PostFileSave",
+      "matcher": "(^|[\\\\/])Migrations[\\\\/][^\\\\/]+\\.cs$",
+      "action": { "type": "agent", "prompt": "A file under Migrations/ was saved. If it was produced by `dotnet ef` (a new migration, its .Designer.cs, or ApplicationDbContextModelSnapshot.cs after `dotnet ef migrations add/remove`), ignore this message. Otherwise generated migrations must not be edited by hand: revert the edit and create a new migration with `dotnet ef migrations add <Name>` instead, unless the user explicitly asked for a manual change." }
+    }
+  ]
+}

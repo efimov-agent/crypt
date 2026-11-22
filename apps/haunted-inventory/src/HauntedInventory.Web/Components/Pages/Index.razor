@@ -1,0 +1,35 @@
+@page "/"
+
+<h1>Welcome to Haunted Inventory</h1>
+
+<p>
+    This is a Kiro-ready .NET 10 skeleton for small business web apps.
+    The template ships with its own `.kiro` folder, so a new project starts
+    Kiro-ready on day one.
+</p>
+
+<h2>Getting Started</h2>
+
+<ul>
+    <li><a href="/api/health">Health Check API</a> - Verify the application is running</li>
+    <li><a href="/api/items">Items API</a> - Example feature endpoints</li>
+</ul>
+
+<h2>Features</h2>
+
+<p>
+    This template includes:
+</p>
+<ul>
+    <li>ASP.NET Core with Blazor Web App (static SSR)</li>
+    <li>EF Core 10 with SQLite (default) or PostgreSQL (optional)</li>
+    <li>Minimal APIs under /api</li>
+    <li>xUnit tests with in-memory database</li>
+    <li>Docker and docker-compose support</li>
+    <li>Dark theme with WCAG AA accessible colors</li>
+</ul>
+
+@code {
+    // This is a Blazor component example
+    private string WelcomeMessage => "Welcome to your Haunted Inventory!";
+}
