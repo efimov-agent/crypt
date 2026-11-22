@@ -26,6 +26,36 @@ public class BlazorPagesTests : IClassFixture<TestDatabaseFixture>
         _client = fixture.CreateClient();
     }
 
+    #region Page titles
+
+    [Theory]
+    [InlineData("/", "Haunted Inventory")]
+    [InlineData("/items", "Items · Haunted Inventory")]
+    [InlineData("/no-such-crypt", "Not found")]
+    public async Task Pages_HaveSingleOwnTitle(string path, string expectedTitle)
+    {
+        var html = await (await _client.GetAsync(path)).Content.ReadAsStringAsync();
+
+        // A static <title> in App.razor would shadow every <PageTitle>.
+        var titles = System.Text.RegularExpressions.Regex.Matches(html, "<title>(.*?)</title>");
+        Assert.Single(titles);
+        Assert.Equal(expectedTitle, WebUtility.HtmlDecode(titles[0].Groups[1].Value));
+    }
+
+    [Fact]
+    public async Task ItemDetailsPage_TitleNamesTheItem()
+    {
+        var items = await _client.GetFromJsonAsync<List<Item>>("/api/items");
+        var item = Assert.IsType<Item>(items!.First());
+
+        var html = await (await _client.GetAsync($"/items/{item.Id}")).Content.ReadAsStringAsync();
+
+        var title = System.Text.RegularExpressions.Regex.Match(html, "<title>(.*?)</title>");
+        Assert.Equal($"{item.Name} · Haunted Inventory", WebUtility.HtmlDecode(title.Groups[1].Value));
+    }
+
+    #endregion
+
     #region Task 10: Items List Page Tests
 
     [Fact]

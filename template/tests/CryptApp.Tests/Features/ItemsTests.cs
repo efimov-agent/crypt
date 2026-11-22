@@ -129,7 +129,7 @@ public class ItemsTests : IClassFixture<TestDatabaseFixture>
         // A static <title> in App.razor would shadow every <PageTitle>.
         var titles = System.Text.RegularExpressions.Regex.Matches(html, "<title>(.*?)</title>");
         Assert.Single(titles);
-        Assert.Equal(expectedTitle, titles[0].Groups[1].Value);
+        Assert.Equal(expectedTitle, WebUtility.HtmlDecode(titles[0].Groups[1].Value));
     }
 
     [Fact]

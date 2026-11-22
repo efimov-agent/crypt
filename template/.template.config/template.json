@@ -16,6 +16,7 @@
   "symbols": {
     "title": {
       "type": "parameter",
+      "description": "Human-readable app title (plain text; no double quotes - it is also substituted into C# test literals).",
       "datatype": "string",
       "replaces": "Crypt Application",
       "defaultValue": "Crypt Application"
