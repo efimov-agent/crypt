@@ -39,8 +39,11 @@ The application will be available at `http://localhost:5000`.
 ### Run Tests
 
 ```bash
-# Run all tests
-dotnet test
+# Run all tests (integration + Playwright e2e; the first e2e run downloads Chromium)
+dotnet test SeanceScheduler.slnx
+
+# Only the browser tests
+dotnet test tests/SeanceScheduler.E2E
 ```
 
 ## Local Development
@@ -110,7 +113,8 @@ SeanceScheduler/
 │       ├── wwwroot/          # Static files
 │       └── App_Data/         # SQLite database
 ├── tests/
-│   └── SeanceScheduler.Tests/       # Integration tests
+│   ├── SeanceScheduler.Tests/       # Unit, HTTP and page-form integration tests
+│   └── SeanceScheduler.E2E/         # Playwright e2e (Kestrel on a random port + headless Chromium)
 ├── .kiro/                    # Kiro configuration
 ├── .config/                  # Local tools (dotnet-ef)
 ├── Dockerfile

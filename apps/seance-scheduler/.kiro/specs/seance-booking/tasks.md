@@ -288,76 +288,76 @@
 
 ## Phase 9: E2E Tests (Playwright)
 
-- [ ] 28. Set up Playwright E2E test infrastructure
-  - [ ] 28.1 Create `tests/SeanceScheduler.E2E/` directory
-  - [ ] 28.2 Create `tests/SeanceScheduler.E2E/SeanceScheduler.E2E.csproj` with Playwright NuGet reference
-  - [ ] 28.3 Create `tests/SeanceScheduler.E2E/Fixtures/WebApplicationFixture.cs` using WebApplicationFactory with Kestrel listening on port 0
-  - [ ] 28.4 Spawn Chromium browser via Playwright and connect to the app URL
-  - [ ] 28.5 Ensure database is cleaned between tests
+- [x] 28. Set up Playwright E2E test infrastructure
+  - [x] 28.1 Create `tests/SeanceScheduler.E2E/` directory
+  - [x] 28.2 Create `tests/SeanceScheduler.E2E/SeanceScheduler.E2E.csproj` with Playwright NuGet reference
+  - [x] 28.3 Create `tests/SeanceScheduler.E2E/Fixtures/WebApplicationFixture.cs` using WebApplicationFactory with Kestrel listening on port 0
+  - [x] 28.4 Spawn Chromium browser via Playwright and connect to the app URL
+  - [x] 28.5 Ensure database is cleaned between tests
   - _Requirements: Testing Strategy, E2E Tests_
 
-- [ ] 29. Create E2E booking flow test
-  - [ ] 29.1 Add `tests/SeanceScheduler.E2E/BookingFlowTests.cs`
-  - [ ] 29.2 Test: Book a seance via UI, verify it appears in schedule list
-    - [ ] 29.2.1 Navigate to `/schedule/new`
-    - [ ] 29.2.2 Fill form (medium, client name, times)
-    - [ ] 29.2.3 Submit form
-    - [ ] 29.2.4 Verify redirect to `/schedule`
-    - [ ] 29.2.5 Verify seance appears in list
-  - [ ] 29.3 Test: Attempt to book overlapping seance, see conflict message
-    - [ ] 29.3.1 Book a seance for 14:00–14:30 on medium M1
-    - [ ] 29.3.2 Attempt to book 14:15–14:45 on same medium
-    - [ ] 29.3.3 Verify 409 conflict message is displayed
-    - [ ] 29.3.4 Verify form values are retained
-  - [ ] 29.4 Test: Cancel a seance, verify removal from schedule
-    - [ ] 29.4.1 Book a seance
-    - [ ] 29.4.2 On `/schedule`, click cancel button for that seance
-    - [ ] 29.4.3 Verify seance no longer appears in list
-  - [ ] 29.5 Test: Navigate to non-existent URL, verify 404 page displays
-    - [ ] 29.5.1 Navigate to `/no-such-page`
-    - [ ] 29.5.2 Verify 404 page displays with appropriate message
+- [x] 29. Create E2E booking flow test
+  - [x] 29.1 Add `tests/SeanceScheduler.E2E/BookingFlowTests.cs`
+  - [x] 29.2 Test: Book a seance via UI, verify it appears in schedule list
+    - [x] 29.2.1 Navigate to `/schedule/new`
+    - [x] 29.2.2 Fill form (medium, client name, times)
+    - [x] 29.2.3 Submit form
+    - [x] 29.2.4 Verify redirect to `/schedule`
+    - [x] 29.2.5 Verify seance appears in list
+  - [x] 29.3 Test: Attempt to book overlapping seance, see conflict message
+    - [x] 29.3.1 Book a seance for 14:00–14:30 on medium M1
+    - [x] 29.3.2 Attempt to book 14:15–14:45 on same medium
+    - [x] 29.3.3 Verify 409 conflict message is displayed
+    - [x] 29.3.4 Verify form values are retained
+  - [x] 29.4 Test: Cancel a seance, verify removal from schedule
+    - [x] 29.4.1 Book a seance
+    - [x] 29.4.2 On `/schedule`, click cancel button for that seance
+    - [x] 29.4.3 Verify seance no longer appears in list
+  - [x] 29.5 Test: Navigate to non-existent URL, verify 404 page displays
+    - [x] 29.5.1 Navigate to `/no-such-page`
+    - [x] 29.5.2 Verify 404 page displays with appropriate message
   - _Requirements: Testing Strategy, E2E Tests_
 
 ## Phase 10: Integration & Verification
 
-- [ ] 30. Build and run all tests
-  - [ ] 30.1 Run `dotnet build` to verify no compilation errors
-  - [ ] 30.2 Run `dotnet test` to verify all unit, integration, and UI tests pass
-  - [ ] 30.3 Run E2E tests: `dotnet test tests/SeanceScheduler.E2E/`
-  - [ ] 30.4 Verify test coverage includes all scenarios from requirements
-  - [ ] 30.5 Verify no warnings are treated as errors (TreatWarningsAsErrors=true)
+- [x] 30. Build and run all tests
+  - [x] 30.1 Run `dotnet build` to verify no compilation errors
+  - [x] 30.2 Run `dotnet test` to verify all unit, integration, and UI tests pass
+  - [x] 30.3 Run E2E tests: `dotnet test tests/SeanceScheduler.E2E/`
+  - [x] 30.4 Verify test coverage includes all scenarios from requirements
+  - [x] 30.5 Verify no warnings are treated as errors (TreatWarningsAsErrors=true)
   - _Requirements: 1.0, 2.0, All_
 
-- [ ] 31. Run app locally and verify UI
-  - [ ] 31.1 Run `dotnet run --project src/SeanceScheduler.Web`
-  - [ ] 31.2 Navigate to `/mediums`, create a medium, verify it appears
-  - [ ] 31.3 Navigate to `/schedule/new`, book a seance with the medium
-  - [ ] 31.4 Verify seance appears on `/schedule`
-  - [ ] 31.5 Test cancelling seance from `/schedule`
-  - [ ] 31.6 Test duplicate booking conflict (book over existing seance)
-  - [ ] 31.7 Test deactivating a medium; verify new bookings fail with 409
+- [x] 31. Run app locally and verify UI
+  - [x] 31.1 Run `dotnet run --project src/SeanceScheduler.Web`
+  - [x] 31.2 Navigate to `/mediums`, create a medium, verify it appears
+  - [x] 31.3 Navigate to `/schedule/new`, book a seance with the medium
+  - [x] 31.4 Verify seance appears on `/schedule`
+  - [x] 31.5 Test cancelling seance from `/schedule`
+  - [x] 31.6 Test duplicate booking conflict (book over existing seance)
+  - [x] 31.7 Test deactivating a medium; verify new bookings fail with 409
   - _Requirements: 1.0, 2.0, All_
 
-- [ ] 32. Verify dark theme styling and accessibility
-  - [ ] 32.1 Use browser DevTools to verify colors meet WCAG AA (4.5:1) contrast
-  - [ ] 32.2 Use accessibility checker (e.g., Wave, Axe) on each page
-  - [ ] 32.3 Verify aria-describedby is correctly linked on form fields with errors
-  - [ ] 32.4 Verify spooky copy appears in UI text only, not in code identifiers
+- [x] 32. Verify dark theme styling and accessibility
+  - [x] 32.1 Use browser DevTools to verify colors meet WCAG AA (4.5:1) contrast
+  - [x] 32.2 Use accessibility checker (e.g., Wave, Axe) on each page
+  - [x] 32.3 Verify aria-describedby is correctly linked on form fields with errors
+  - [x] 32.4 Verify spooky copy appears in UI text only, not in code identifiers
   - _Requirements: US-12, 3.0_
 
-- [ ] 33. Document API in OpenAPI/Swagger (optional, nice-to-have)
-  - [ ] 33.1 If desired, add Swagger/OpenAPI documentation for seance booking endpoints
-  - [ ] 33.2 Verify endpoints are discoverable at `/swagger` or `/api/docs`
+- [x] 33. Document API in OpenAPI/Swagger (optional, nice-to-have)
+  - [x] 33.1 If desired, add Swagger/OpenAPI documentation for seance booking endpoints
+  - [x] 33.2 Verify endpoints are discoverable at `/swagger` or `/api/docs`
   - _Requirements: API Specification_
 
-- [ ] 34. Final code review and cleanup
-  - [ ] 34.1 Review all code for style consistency with Items reference implementation
-  - [ ] 34.2 Verify all services follow async/await pattern with CancellationToken
-  - [ ] 34.3 Verify all logging uses ILogger<T>
-  - [ ] 34.4 Verify all timestamps are DateTime UTC
-  - [ ] 34.5 Verify nullable reference types are used (Nullable=enable)
-  - [ ] 34.6 Remove any temporary test code or debug logging
-  - [ ] 34.7 Verify no secrets or credentials in code
+- [x] 34. Final code review and cleanup
+  - [x] 34.1 Review all code for style consistency with Items reference implementation
+  - [x] 34.2 Verify all services follow async/await pattern with CancellationToken
+  - [x] 34.3 Verify all logging uses ILogger<T>
+  - [x] 34.4 Verify all timestamps are DateTime UTC
+  - [x] 34.5 Verify nullable reference types are used (Nullable=enable)
+  - [x] 34.6 Remove any temporary test code or debug logging
+  - [x] 34.7 Verify no secrets or credentials in code
   - _Requirements: All_
 
 ## Summary

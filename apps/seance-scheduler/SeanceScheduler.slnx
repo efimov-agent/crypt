@@ -3,6 +3,7 @@
     <Project Path="src/SeanceScheduler.Web/SeanceScheduler.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/SeanceScheduler.E2E/SeanceScheduler.E2E.csproj" />
     <Project Path="tests/SeanceScheduler.Tests/SeanceScheduler.Tests.csproj" />
   </Folder>
 </Solution>
