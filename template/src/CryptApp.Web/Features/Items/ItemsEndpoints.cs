@@ -1,6 +1,3 @@
-using CryptApp.Web.Data.Models;
-using Microsoft.EntityFrameworkCore;
-
 namespace CryptApp.Web.Features.Items;
 
 public static class ItemsEndpoints
@@ -40,17 +37,16 @@ public static class ItemsEndpoints
         return Results.Ok(item);
     }
 
-    private static async Task<IResult> CreateItem(ItemsService service, ILogger<ItemsService> logger, Item item, CancellationToken cancellationToken)
+    private static async Task<IResult> CreateItem(CreateItemRequest request, ItemsService service, ILogger<ItemsService> logger, CancellationToken cancellationToken)
     {
-        logger.LogInformation("POST /api/items requested for {Name}", item.Name);
-        
-        if (string.IsNullOrWhiteSpace(item.Name))
+        var errors = request.Validate();
+        if (errors.Count > 0)
         {
-            return Results.BadRequest(new { message = "Name is required" });
+            return Results.ValidationProblem(errors);
         }
-        
-        var created = await service.CreateItemAsync(item, cancellationToken);
-        
+
+        var created = await service.CreateItemAsync(request.Name!.Trim(), request.Description, cancellationToken);
+
         logger.LogInformation("Created item {Id}", created.Id);
         return Results.Created($"/api/items/{created.Id}", created);
     }

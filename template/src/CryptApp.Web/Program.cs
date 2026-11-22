@@ -8,13 +8,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents();
 builder.Services.AddEndpointsApiExplorer();
 
-// Configure logging
-builder.Services.AddLogging(logging =>
-{
-    logging.AddConsole();
-    logging.SetMinimumLevel(LogLevel.Information);
-});
-
 // Configure EF Core with SQLite
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
     ?? "Data Source=App_Data/app.db";
@@ -51,17 +44,10 @@ app.MapItemsEndpoints();
 app.MapRazorComponents<CryptApp.Web.Components.App>();
 
 // Health check endpoint
-app.MapGet("/api/health", async (CancellationToken cancellationToken) =>
+app.MapGet("/api/health", (ILogger<Program> logger) =>
 {
-    var logger = app.Services.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation("Health check requested at {Time}", DateTime.UtcNow);
-    
-    return Results.Ok(new 
-    { 
-        Status = "Healthy", 
-        Timestamp = DateTime.UtcNow, 
-        Version = "1.0.0" 
-    });
+    logger.LogDebug("Health check requested");
+    return Results.Ok(new { Status = "Healthy", Timestamp = DateTime.UtcNow, Version = "1.0.0" });
 });
 
 await app.RunAsync();

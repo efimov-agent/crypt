@@ -1,4 +1,7 @@
+using System.Net;
+using System.Net.Http.Json;
 using CryptApp.Tests.Fixtures;
+using CryptApp.Web.Data.Models;
 using Xunit;
 
 namespace CryptApp.Tests.Features;
@@ -6,23 +9,18 @@ namespace CryptApp.Tests.Features;
 [Collection("Integration tests")]
 public class ItemsTests : IClassFixture<TestDatabaseFixture>
 {
-    private readonly TestDatabaseFixture _fixture;
+    private readonly HttpClient _client;
 
     public ItemsTests(TestDatabaseFixture fixture)
     {
-        _fixture = fixture;
+        _client = fixture.CreateClient();
     }
 
     [Fact]
     public async Task HealthEndpoint_ReturnsOk()
     {
-        // Arrange
-        var client = _fixture.CreateClient();
+        var response = await _client.GetAsync("/api/health");
 
-        // Act
-        var response = await client.GetAsync("/api/health");
-
-        // Assert
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
         Assert.Contains("Healthy", content, StringComparison.OrdinalIgnoreCase);
@@ -30,52 +28,81 @@ public class ItemsTests : IClassFixture<TestDatabaseFixture>
     }
 
     [Fact]
-    public async Task GetItems_ReturnsItems()
+    public async Task GetItems_ReturnsSeededItems()
     {
-        // Arrange
-        var client = _fixture.CreateClient();
+        var items = await _client.GetFromJsonAsync<List<Item>>("/api/items");
 
-        // Act
-        var response = await client.GetAsync("/api/items");
-
-        // Assert
-        response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadAsStringAsync();
-        Assert.Contains("Test Item", content);
+        Assert.NotNull(items);
+        Assert.Contains(items, i => i.Name == "Test Item 1");
     }
 
     [Fact]
-    public async Task CreateItem_ReturnsCreated()
+    public async Task CreateItem_ReturnsCreatedWithLocation_AndItemIsReadable()
     {
-        // Arrange
-        var client = _fixture.CreateClient();
-        var newItem = new 
-        {
-            name = "New Test Item",
-            description = "Created by integration test"
-        };
-        var jsonContent = new StringContent(
-            System.Text.Json.JsonSerializer.Serialize(newItem),
-            System.Text.Encoding.UTF8,
-            "application/json");
+        var response = await _client.PostAsJsonAsync("/api/items", new { name = "  Lantern  ", description = "Glows" });
 
-        // Act
-        var response = await client.PostAsync("/api/items", jsonContent);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<Item>();
+        Assert.NotNull(created);
+        Assert.Equal("Lantern", created.Name);
+        Assert.Equal($"/api/items/{created.Id}", response.Headers.Location?.OriginalString);
 
-        // Assert
-        Assert.True(response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.Created);
+        var fetched = await _client.GetFromJsonAsync<Item>(response.Headers.Location);
+        Assert.Equal("Glows", fetched?.Description);
+    }
+
+    [Fact]
+    public async Task CreateItem_IgnoresClientSuppliedId()
+    {
+        var response = await _client.PostAsJsonAsync("/api/items", new { id = 1, name = "Overposted" });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<Item>();
+        Assert.NotEqual(1, created?.Id);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    public async Task CreateItem_WithoutName_ReturnsValidationProblem(string? name)
+    {
+        var response = await _client.PostAsJsonAsync("/api/items", new { name });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("Name", await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task CreateItem_TooLong_ReturnsValidationProblem()
+    {
+        var response = await _client.PostAsJsonAsync("/api/items",
+            new { name = new string('x', 201), description = new string('y', 1001) });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Name", body);
+        Assert.Contains("Description", body);
+    }
+
+    [Fact]
+    public async Task DeleteItem_RemovesItem_ThenReturns404()
+    {
+        var create = await _client.PostAsJsonAsync("/api/items", new { name = "Doomed" });
+        var location = create.Headers.Location;
+
+        var delete = await _client.DeleteAsync(location);
+        Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
+
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync(location)).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.DeleteAsync(location)).StatusCode);
     }
 
     [Fact]
     public async Task GetItem_NotFound_Returns404()
     {
-        // Arrange
-        var client = _fixture.CreateClient();
+        var response = await _client.GetAsync("/api/items/999999");
 
-        // Act
-        var response = await client.GetAsync("/api/items/999999");
-
-        // Assert
-        Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }

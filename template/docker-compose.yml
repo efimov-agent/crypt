@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   web:
     build:
@@ -8,9 +6,9 @@ services:
     ports:
       - "5000:8080"
     volumes:
-      - ./src/CryptApp.Web/App_Data:/app/App_Data
+      - crypt-data:/app/App_Data
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
     networks:
       - crypt-network
@@ -33,6 +31,7 @@ networks:
   crypt-network:
     driver: bridge
 
-# Uncomment to enable PostgreSQL volume
-# volumes:
-#   postgres-data:
+volumes:
+  crypt-data:
+  # Uncomment to enable PostgreSQL volume
+  # postgres-data:

@@ -19,17 +19,9 @@ public class ItemsService
     {
         _logger.LogInformation("Fetching all items at {Time}", DateTime.UtcNow);
         
-        try
-        {
-            return await _dbContext.Items
-                .OrderBy(i => i.Name)
-                .ToListAsync(cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error fetching items");
-            throw;
-        }
+        return await _dbContext.Items
+            .OrderBy(i => i.Name)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<Item?> GetItemByIdAsync(int id, CancellationToken cancellationToken)
@@ -39,14 +31,17 @@ public class ItemsService
         return await _dbContext.Items.FindAsync([id], cancellationToken);
     }
 
-    public async Task<Item> CreateItemAsync(Item item, CancellationToken cancellationToken)
+    public async Task<Item> CreateItemAsync(string name, string? description, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Creating item {ItemName} at {Time}", item.Name, DateTime.UtcNow);
-        
-        item.CreatedAt = DateTime.UtcNow;
+        var item = new Item
+        {
+            Name = name,
+            Description = description,
+            CreatedAt = DateTime.UtcNow
+        };
         _dbContext.Items.Add(item);
         await _dbContext.SaveChangesAsync(cancellationToken);
-        
+
         _logger.LogInformation("Created item {ItemId} - {ItemName}", item.Id, item.Name);
         return item;
     }
