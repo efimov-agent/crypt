@@ -1,0 +1,44 @@
+# Build artifacts
+bin/
+obj/
+out/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Git
+.git/
+.gitignore
+
+# Test results
+TestResults/
+coverage/
+
+# Logs
+*.log
+logs/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+App_Data/
+
+# Packages
+packages/
+*.nupkg
+
+# Node files (if any)
+node_modules/
+npm-debug.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Template config (not needed in output)
+.template.config/

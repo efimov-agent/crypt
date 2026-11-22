@@ -1,0 +1,97 @@
+/* Dark theme with WCAG AA accessible colors */
+.page {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.sidebar {
+    background: #1a1a2e;
+    border-right: 1px solid #16213e;
+}
+
+.title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #e94560;
+    padding: 1rem;
+    border-bottom: 1px solid #16213e;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+nav li {
+    padding: 0;
+}
+
+nav a {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: #eaeaea;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+nav a:hover {
+    background-color: #16213e;
+    color: #e94560;
+}
+
+nav a:focus {
+    outline: 2px solid #e94560;
+    outline-offset: -2px;
+}
+
+.top-row {
+    background-color: #1a1a2e;
+    border-bottom: 1px solid #16213e;
+    padding: 0.75rem 1rem;
+}
+
+.top-row a {
+    color: #e94560;
+    text-decoration: none;
+}
+
+article {
+    padding: 1rem;
+    color: #eaeaea;
+    background-color: #0f0f1a;
+    min-height: calc(100vh - 60px);
+}
+
+.not-found {
+    text-align: center;
+    padding: 2rem;
+}
+
+.not-found h1 {
+    color: #e94560;
+}
+
+.not-found a {
+    color: #e94560;
+}
+
+/* WCAG AA Contrast Requirements */
+body {
+    background-color: #0f0f1a;
+    color: #eaeaea;
+    font-family: system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+}
+
+/* Focus visibility for accessibility */
+a:focus-visible,
+button:focus-visible {
+    outline: 2px solid #e94560;
+    outline-offset: 2px;
+}

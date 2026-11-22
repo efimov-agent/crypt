@@ -1,0 +1,27 @@
+@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="sidebar">
+        <nav>
+            <div class="title">Crypt App</div>
+            <ul>
+                <li>
+                    <a href="/">Home</a>
+                </li>
+                <li>
+                    <a href="/api/items" target="_blank">API Items</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <main>
+        <div class="top-row">
+            <a href="/" target="_self">Crypt Application</a>
+        </div>
+
+        <article>
+            @Body
+        </article>
+    </main>
+</div>

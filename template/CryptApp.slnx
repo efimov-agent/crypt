@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CryptApp.Web/CryptApp.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CryptApp.Tests/CryptApp.Tests.csproj" />
+  </Folder>
+</Solution>
