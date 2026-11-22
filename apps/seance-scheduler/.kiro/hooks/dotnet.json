@@ -1,0 +1,25 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "test-on-stop",
+      "description": "When the agent finishes a turn, build and run the whole test suite once (instead of building on every file save); output goes to stderr so build errors and assert messages reach the agent",
+      "trigger": "Stop",
+      "timeout": 600,
+      "action": {
+        "type": "command",
+        "command": "dotnet test SeanceScheduler.slnx --nologo -v q 1>&2"
+      }
+    },
+    {
+      "name": "guard-migrations",
+      "description": "Remind the agent never to hand-edit generated migration Designer files or the model snapshot",
+      "trigger": "PostFileSave",
+      "matcher": "(^|[\\\\/])Migrations[\\\\/][^\\\\/]*(\\.Designer\\.cs|ModelSnapshot\\.cs)$",
+      "action": {
+        "type": "agent",
+        "prompt": "A generated EF Core file under Migrations/ (a .Designer.cs or the model snapshot) was saved. If `dotnet ef migrations add/remove` just produced it, ignore this message. Otherwise revert the hand edit: change the model and run `dotnet ef migrations add <Name>` instead. Adding custom SQL (for example a data backfill) to the Up/Down methods of a new migration is fine."
+      }
+    }
+  ]
+}

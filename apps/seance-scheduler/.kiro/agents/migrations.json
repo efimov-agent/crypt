@@ -1,0 +1,45 @@
+{
+  "name": "migrations",
+  "description": "Creates, reviews and applies EF Core migrations for SeanceScheduler safely.",
+  "prompt": "file://../prompts/migrations.md",
+  "tools": [
+    "read",
+    "write",
+    "shell"
+  ],
+  "resources": [
+    "file://.kiro/steering/tech.md",
+    "file://.kiro/steering/structure.md"
+  ],
+  "permissions": {
+    "rules": [
+      {
+        "capability": "fs_read",
+        "match": [
+          "./**"
+        ],
+        "effect": "allow"
+      }
+    ]
+  },
+  "hooks": [
+    {
+      "name": "test-on-stop",
+      "trigger": "Stop",
+      "timeout": 600,
+      "action": {
+        "type": "command",
+        "command": "dotnet test SeanceScheduler.slnx --nologo -v q 1>&2"
+      }
+    },
+    {
+      "name": "guard-migrations",
+      "trigger": "PreToolUse",
+      "matcher": "^(fs_write|fs_append|str_replace)$",
+      "action": {
+        "type": "command",
+        "command": "sh .kiro/hooks/guard-migrations.sh"
+      }
+    }
+  ]
+}
