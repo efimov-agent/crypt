@@ -21,5 +21,25 @@
         "effect": "allow"
       }
     ]
-  }
+  },
+  "hooks": [
+    {
+      "name": "test-on-stop",
+      "trigger": "Stop",
+      "timeout": 600,
+      "action": {
+        "type": "command",
+        "command": "dotnet test CryptApp.slnx --nologo -v q 1>&2"
+      }
+    },
+    {
+      "name": "guard-migrations",
+      "trigger": "PostToolUse",
+      "matcher": "^(fs_write|fs_append|str_replace)$",
+      "action": {
+        "type": "command",
+        "command": "sh .kiro/hooks/guard-migrations.sh"
+      }
+    }
+  ]
 }
