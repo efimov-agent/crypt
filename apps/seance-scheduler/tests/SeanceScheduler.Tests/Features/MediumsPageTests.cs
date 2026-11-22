@@ -74,8 +74,12 @@ public class MediumsPageTests : IClassFixture<TestDatabaseFixture>
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         var html = await response.Content.ReadAsStringAsync();
-        Assert.NotNull(PageForms.ElementTag(html, "medium-form-error"));
-        Assert.Contains($"value=\"{name.ToUpperInvariant()}\"", PageForms.ElementTag(html, "medium-name"));
+        var input = PageForms.ElementTag(html, "medium-name");
+        Assert.Contains($"value=\"{name.ToUpperInvariant()}\"", input);
+        Assert.Contains("aria-invalid=\"true\"", input);
+        Assert.Contains("aria-describedby=\"medium-name-error\"", input);
+        Assert.NotNull(PageForms.ElementTag(html, "medium-name-error"));
+        Assert.Contains("already exists", html);
     }
 
     [Fact]

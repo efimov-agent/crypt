@@ -59,11 +59,6 @@ else if (_mediums is not null)
 <section class="form-section" aria-labelledby="summon-title">
     <h2 id="summon-title">Summon a New Medium</h2>
 
-    @if (_formError is not null)
-    {
-        <p class="error-message" role="alert" id="medium-form-error">@_formError</p>
-    }
-
     <form method="post" @formname="CreateMedium" @onsubmit="CreateAsync" class="stacked-form" novalidate>
         <AntiforgeryToken />
 
@@ -105,7 +100,6 @@ else if (_mediums is not null)
 
     private IReadOnlyList<MediumDto>? _mediums;
     private Dictionary<string, string[]> _errors = [];
-    private string? _formError;
     private string? _deactivateError;
     private string? _notice;
 
@@ -136,7 +130,8 @@ else if (_mediums is not null)
         }
         catch (ConflictException ex)
         {
-            _formError = ex.Message;
+            // The only create conflict is a duplicate name: attach it to the field so it gets aria-invalid.
+            _errors = new Dictionary<string, string[]> { [nameof(MediumForm.Name)] = [ex.Message] };
             SetStatus(StatusCodes.Status409Conflict);
             return;
         }
