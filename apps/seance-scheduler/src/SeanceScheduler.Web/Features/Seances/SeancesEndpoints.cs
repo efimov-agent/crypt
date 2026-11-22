@@ -22,9 +22,6 @@ public static class SeancesEndpoints
         ILogger<SeancesService> logger,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation("GET /api/seances requested. Filters: mediumId={MediumId}, from={From}, to={To}",
-            mediumId, from, to);
-
         try
         {
             var seances = await service.GetSeancesAsync(mediumId, from, to, cancellationToken);
@@ -37,9 +34,9 @@ public static class SeancesEndpoints
         }
     }
 
-    private static async Task<IResult> CreateSeance(CreateSeanceRequest request, SeancesService service, ILogger<SeancesService> logger, CancellationToken cancellationToken)
+    private static async Task<IResult> CreateSeance(CreateSeanceRequest request, SeancesService service, TimeProvider timeProvider, ILogger<SeancesService> logger, CancellationToken cancellationToken)
     {
-        var errors = request.Validate();
+        var errors = request.Validate(timeProvider.GetUtcNow().UtcDateTime);
         if (errors.Count > 0)
         {
             logger.LogWarning("Invalid seance request: {Errors}", string.Join(", ", errors.SelectMany(kv => kv.Value)));
@@ -72,10 +69,8 @@ public static class SeancesEndpoints
         }
     }
 
-    private static async Task<IResult> CancelSeance(int id, SeancesService service, ILogger<SeancesService> logger, CancellationToken cancellationToken)
+    private static async Task<IResult> CancelSeance(int id, SeancesService service, CancellationToken cancellationToken)
     {
-        logger.LogInformation("POST /api/seances/{Id}/cancel requested", id);
-
         try
         {
             var cancelled = await service.CancelSeanceAsync(id, cancellationToken);

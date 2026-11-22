@@ -6,6 +6,7 @@
 @inject SeancesService SeancesService
 @inject MediumsService MediumsService
 @inject NavigationManager NavigationManager
+@inject TimeProvider TimeProvider
 
 <PageTitle>Book a Seance · Seance Scheduler</PageTitle>
 
@@ -103,7 +104,7 @@
     private async Task BookAsync()
     {
         Form ??= new();
-        _errors = Validate(Form, out var mediumId, out var startsAt, out var endsAt);
+        _errors = Validate(Form, TimeProvider.GetUtcNow().UtcDateTime, out var mediumId, out var startsAt, out var endsAt);
         if (_errors.Count > 0)
         {
             SetStatus(StatusCodes.Status400BadRequest);
@@ -139,13 +140,13 @@
         NavigationManager.NavigateTo("/schedule?booked=1");
     }
 
-    private static Dictionary<string, string[]> Validate(SeanceForm form, out int mediumId, out DateTime startsAt, out DateTime endsAt)
+    private static Dictionary<string, string[]> Validate(SeanceForm form, DateTime nowUtc, out int mediumId, out DateTime startsAt, out DateTime endsAt)
     {
         var parsedMedium = int.TryParse(form.MediumId, NumberStyles.None, CultureInfo.InvariantCulture, out mediumId);
         var parsedStart = TryParseUtc(form.StartsAt, out startsAt);
         var parsedEnd = TryParseUtc(form.EndsAt, out endsAt);
 
-        var errors = new CreateSeanceRequest(mediumId, form.ClientName, startsAt, endsAt).Validate();
+        var errors = new CreateSeanceRequest(mediumId, form.ClientName, startsAt, endsAt).Validate(nowUtc);
         if (!parsedMedium)
         {
             errors["MediumId"] = ["Choose a medium."];

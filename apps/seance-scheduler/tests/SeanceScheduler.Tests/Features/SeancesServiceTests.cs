@@ -373,10 +373,11 @@ public class SeancesServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Book_RacingDeactivation_EitherBooksBeforeOrConflictsAfter()
+    public async Task Book_RacingDeactivation_NoLockErrorsAndConsistentOutcome()
     {
-        // Booking reads IsActive inside BEGIN IMMEDIATE, deactivation is a write: the two are serialized,
-        // so a booking either commits before the deactivation or sees the medium inactive (409) — never a lock error.
+        // Smoke test for concurrent writers on one SQLite file: each round ends with either a committed booking
+        // or a 409, never a SQLITE_BUSY/other error, and bookings are refused once deactivation has committed.
+        // It cannot tell a stale IsActive read from a correct ordering; the IMMEDIATE transaction is what prevents that.
         const int rounds = 10;
         for (var round = 0; round < rounds; round++)
         {

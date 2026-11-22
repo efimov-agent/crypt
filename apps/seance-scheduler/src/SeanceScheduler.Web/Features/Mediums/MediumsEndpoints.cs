@@ -16,18 +16,14 @@ public static class MediumsEndpoints
 
     private static async Task<IResult> GetMediums(MediumsService service, ILogger<MediumsService> logger, CancellationToken cancellationToken)
     {
-        logger.LogInformation("GET /api/mediums requested");
-
         var mediums = await service.GetMediumsAsync(cancellationToken);
 
         logger.LogInformation("Returning {Count} mediums", mediums.Count);
         return Results.Ok(mediums);
     }
 
-    private static async Task<IResult> GetMedium(int id, MediumsService service, ILogger<MediumsService> logger, CancellationToken cancellationToken)
+    private static async Task<IResult> GetMedium(int id, MediumsService service, CancellationToken cancellationToken)
     {
-        logger.LogInformation("GET /api/mediums/{Id} requested", id);
-
         var medium = await service.GetMediumByIdAsync(id, cancellationToken);
 
         if (medium == null)
@@ -38,7 +34,7 @@ public static class MediumsEndpoints
         return Results.Ok(medium);
     }
 
-    private static async Task<IResult> CreateMedium(CreateMediumRequest request, MediumsService service, ILogger<MediumsService> logger, CancellationToken cancellationToken)
+    private static async Task<IResult> CreateMedium(CreateMediumRequest request, MediumsService service, CancellationToken cancellationToken)
     {
         var errors = request.Validate();
         if (errors.Count > 0)
@@ -61,10 +57,8 @@ public static class MediumsEndpoints
         }
     }
 
-    private static async Task<IResult> DeactivateMedium(int id, MediumsService service, ILogger<MediumsService> logger, CancellationToken cancellationToken)
+    private static async Task<IResult> DeactivateMedium(int id, MediumsService service, CancellationToken cancellationToken)
     {
-        logger.LogInformation("POST /api/mediums/{Id}/deactivate requested", id);
-
         try
         {
             var deactivated = await service.DeactivateMediumAsync(id, cancellationToken);

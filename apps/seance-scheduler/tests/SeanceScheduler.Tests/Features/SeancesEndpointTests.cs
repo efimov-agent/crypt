@@ -131,11 +131,11 @@ public class SeancesEndpointTests : IClassFixture<TestDatabaseFixture>
     // ---- Error cases ----
 
     [Theory]
-    [InlineData(0, 29)]   // too short
-    [InlineData(0, 241)]  // too long
-    [InlineData(0, 50)]   // not a multiple of 15
-    [InlineData(10, 60)]  // start off the 15-minute grid
-    public async Task Create_InvalidSlot_Returns400(int startMinute, int durationMinutes)
+    [InlineData(0, 29, "EndsAt")]    // too short
+    [InlineData(0, 241, "EndsAt")]   // too long
+    [InlineData(0, 50, "EndsAt")]    // not a multiple of 15
+    [InlineData(10, 60, "StartsAt")] // start off the 15-minute grid
+    public async Task Create_InvalidSlot_Returns400WithFieldError(int startMinute, int durationMinutes, string field)
     {
         var mediumId = await CreateMediumAsync();
         var start = At(14, startMinute);
@@ -143,8 +143,38 @@ public class SeancesEndpointTests : IClassFixture<TestDatabaseFixture>
         var response = await PostSeanceAsync(mediumId, start, start.AddMinutes(durationMinutes));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.NotNull(await response.Content.ReadFromJsonAsync<ValidationProblemDetails>());
+        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.Equal([field], problem!.Errors.Keys);
         Assert.Empty(await ListAsync($"?mediumId={mediumId}"));
+    }
+
+    [Fact]
+    public async Task Create_MissingNameAndOffGrid_ReportsAllErrorsInOneResponse()
+    {
+        var mediumId = await CreateMediumAsync();
+        var start = At(14, 10);
+
+        var response = await PostSeanceAsync(mediumId, start, start.AddMinutes(20), clientName: " ");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.Equal(["ClientName", "EndsAt", "StartsAt"], problem!.Errors.Keys.Order());
+    }
+
+    [Fact]
+    public async Task Create_MixedOffsets_ComparedAsUtc()
+    {
+        var mediumId = await CreateMediumAsync();
+        // 16:00+02:00 is 14:00Z; ending 15:00Z is one hour later even though the local wall-clock values go backwards.
+        var startsAt = new DateTimeOffset(DateTime.SpecifyKind(Day.AddHours(16), DateTimeKind.Unspecified), TimeSpan.FromHours(2));
+        var endsAt = new DateTimeOffset(Day.AddHours(15), TimeSpan.Zero);
+
+        var response = await _client.PostAsJsonAsync("/api/seances", new { mediumId, clientName = "Ichabod", startsAt, endsAt });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = (await response.Content.ReadFromJsonAsync<SeanceDto>())!;
+        Assert.Equal(At(14), created.StartsAt);
+        Assert.Equal(At(15), created.EndsAt);
     }
 
     [Fact]
