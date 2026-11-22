@@ -16,6 +16,10 @@ Two distinct apps were built from the same skeleton to show its versatility:
 | [`apps/haunted-inventory/`](apps/haunted-inventory) | **Haunted Inventory** — stock for a costume & prop rental shop | SKU, quantities, reorder levels, atomic stock movements (never below zero, also under 20 concurrent requests), movement history, low-stock filter |
 | [`apps/seance-scheduler/`](apps/seance-scheduler) | **Seance Scheduler** — bookings with mediums | Mediums, seances on a 15-minute grid, no double-booking under concurrency (`BEGIN IMMEDIATE`), schedule by day, cancellation, problem+json API errors |
 
+Live demos (public sandbox, no login; data may be reset):
+[Haunted Inventory](https://haunted.efimomax-sandbox.de) ·
+[Seance Scheduler](https://seance.efimomax-sandbox.de).
+
 How Kiro was used (specs, steering, hooks, custom agents, Kiro CLI headless):
 see [docs/kiro-writeup.md](docs/kiro-writeup.md).
 
