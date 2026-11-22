@@ -1,0 +1,168 @@
+@page "/schedule"
+@using System.Globalization
+@using SeanceScheduler.Web.Features.Common
+@using SeanceScheduler.Web.Features.Mediums
+@using SeanceScheduler.Web.Features.Seances
+@inject SeancesService SeancesService
+@inject MediumsService MediumsService
+@inject TimeProvider TimeProvider
+@inject NavigationManager NavigationManager
+
+<PageTitle>Schedule · Seance Scheduler</PageTitle>
+
+<h1>The Summoned Appointments</h1>
+<p class="hint">Upcoming seances, all times in UTC. <a href="/schedule/new">Book a seance</a></p>
+
+@if (_notice is not null)
+{
+    <p class="notice" role="status">@_notice</p>
+}
+
+@if (_cancelError is not null)
+{
+    <p class="error-message" role="alert">@_cancelError</p>
+}
+
+<form method="get" action="/schedule" class="filter-form">
+    <div class="form-group">
+        <label for="medium-filter">Spirit Medium</label>
+        <select id="medium-filter" name="mediumId">
+            <option value="">All mediums</option>
+            @foreach (var medium in _mediums)
+            {
+                <option value="@medium.Id" selected="@(medium.Id == _mediumId)">@medium.Name</option>
+            }
+        </select>
+    </div>
+    <button type="submit" class="btn btn-secondary">Filter</button>
+</form>
+
+@if (_seances.Count == 0)
+{
+    <p class="empty">The spirit realm is quiet — no seances are scheduled.</p>
+}
+else
+{
+    <form method="post" @formname="CancelSeance" @onsubmit="CancelAsync">
+        <AntiforgeryToken />
+        @foreach (var day in _seances.GroupBy(s => s.StartsAt.Date))
+        {
+            <section class="schedule-day" aria-labelledby="day-@day.Key.ToString("yyyyMMdd", CultureInfo.InvariantCulture)">
+                <h2 id="day-@day.Key.ToString("yyyyMMdd", CultureInfo.InvariantCulture)">@day.Key.ToString("dddd, MMM d", Culture)</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Time (UTC)</th>
+                            <th scope="col">Spirit Medium</th>
+                            <th scope="col">Seeker</th>
+                            <th scope="col"><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var seance in day)
+                        {
+                            <tr data-seance-id="@seance.Id">
+                                <td>@seance.StartsAt.ToString("HH:mm", Culture)–@seance.EndsAt.ToString("HH:mm", Culture)</td>
+                                <td>@MediumName(seance.MediumId)</td>
+                                <td>@seance.ClientName</td>
+                                <td>
+                                    <button type="submit" class="btn btn-secondary" name="CancelId" value="@seance.Id"
+                                            aria-label="Cancel seance of @seance.ClientName at @seance.StartsAt.ToString("HH:mm", Culture)">Cancel</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </section>
+        }
+    </form>
+}
+
+@code {
+    private static readonly CultureInfo Culture = CultureInfo.GetCultureInfo("en-US");
+
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    // Raw string: the "All mediums" option submits an empty value, which must not fail binding.
+    [SupplyParameterFromQuery(Name = "mediumId")]
+    public string? MediumIdQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "booked")]
+    public int? Booked { get; set; }
+
+    [SupplyParameterFromQuery(Name = "cancelled")]
+    public int? Cancelled { get; set; }
+
+    [SupplyParameterFromForm(FormName = "CancelSeance")]
+    public int? CancelId { get; set; }
+
+    private IReadOnlyList<MediumDto> _mediums = [];
+    private IReadOnlyList<SeanceDto> _seances = [];
+    private int? _mediumId;
+    private string? _notice;
+    private string? _cancelError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _mediumId = int.TryParse(MediumIdQuery, NumberStyles.None, CultureInfo.InvariantCulture, out var id) ? id : null;
+        _notice = Booked == 1 ? "The seance is booked. The spirits await."
+            : Cancelled == 1 ? "The seance has been cancelled. The spirits are informed."
+            : null;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _mediums = await MediumsService.GetMediumsAsync(CancellationToken.None);
+        var today = TimeProvider.GetUtcNow().UtcDateTime.Date;
+        _seances = await SeancesService.GetSeancesAsync(_mediumId, today, null, CancellationToken.None);
+    }
+
+    private async Task CancelAsync()
+    {
+        _notice = null;
+        if (CancelId is not { } id)
+        {
+            _cancelError = "Choose a seance to cancel.";
+            SetStatus(StatusCodes.Status400BadRequest);
+            return;
+        }
+
+        try
+        {
+            await SeancesService.CancelSeanceAsync(id, CancellationToken.None);
+        }
+        catch (NotFoundException ex)
+        {
+            await FailAsync(ex.Message, StatusCodes.Status404NotFound);
+            return;
+        }
+        catch (ConflictException ex)
+        {
+            await FailAsync(ex.Message, StatusCodes.Status409Conflict);
+            return;
+        }
+
+        var filter = _mediumId is { } m ? $"mediumId={m}&" : string.Empty;
+        NavigationManager.NavigateTo($"/schedule?{filter}cancelled=1");
+    }
+
+    private async Task FailAsync(string message, int statusCode)
+    {
+        _cancelError = message;
+        SetStatus(statusCode);
+        await LoadAsync();
+    }
+
+    private string MediumName(int mediumId) =>
+        _mediums.FirstOrDefault(m => m.Id == mediumId)?.Name ?? $"Medium #{mediumId}";
+
+    private void SetStatus(int statusCode)
+    {
+        if (HttpContext is not null)
+        {
+            HttpContext.Response.StatusCode = statusCode;
+        }
+    }
+}

@@ -1,0 +1,177 @@
+@page "/schedule/new"
+@using System.Globalization
+@using SeanceScheduler.Web.Features.Common
+@using SeanceScheduler.Web.Features.Mediums
+@using SeanceScheduler.Web.Features.Seances
+@inject SeancesService SeancesService
+@inject MediumsService MediumsService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Book a Seance · Seance Scheduler</PageTitle>
+
+<h1>Book a Seance</h1>
+<p class="hint">All times are in UTC. Seances last 30–240 minutes and start on a quarter hour.</p>
+
+@if (_formError is not null)
+{
+    <p class="error-message" role="alert" id="seance-form-error">@_formError</p>
+}
+
+@if (_activeMediums.Count == 0)
+{
+    <p class="empty">No active medium can hear you right now. <a href="/mediums">Summon a medium</a> first.</p>
+}
+else
+{
+    <form method="post" @formname="BookSeance" @onsubmit="BookAsync" class="stacked-form" novalidate>
+        <AntiforgeryToken />
+
+        <div class="form-group">
+            <label for="seance-medium">Spirit Medium</label>
+            <select id="seance-medium" name="Form.MediumId"
+                    aria-invalid="@Invalid("MediumId")" aria-describedby="@DescribedBy("MediumId")">
+                <option value="">Choose a medium…</option>
+                @foreach (var medium in _activeMediums)
+                {
+                    <option value="@medium.Id" selected="@(Form?.MediumId == medium.Id.ToString(CultureInfo.InvariantCulture))">@medium.Name</option>
+                }
+            </select>
+            @FieldErrors("MediumId")
+        </div>
+
+        <div class="form-group">
+            <label for="seance-client">Seeker's name</label>
+            <input id="seance-client" name="Form.ClientName" value="@Form?.ClientName" maxlength="@CreateSeanceRequest.ClientNameMaxLength"
+                   aria-invalid="@Invalid("ClientName")" aria-describedby="@DescribedBy("ClientName")" />
+            @FieldErrors("ClientName")
+        </div>
+
+        <div class="form-group">
+            <label for="seance-startsat">Starts at (UTC)</label>
+            <input id="seance-startsat" type="datetime-local" step="900" name="Form.StartsAt" value="@Form?.StartsAt"
+                   aria-invalid="@Invalid("StartsAt")" aria-describedby="@DescribedBy("StartsAt")" />
+            @FieldErrors("StartsAt")
+        </div>
+
+        <div class="form-group">
+            <label for="seance-endsat">Ends at (UTC)</label>
+            <input id="seance-endsat" type="datetime-local" step="900" name="Form.EndsAt" value="@Form?.EndsAt"
+                   aria-invalid="@Invalid("EndsAt")" aria-describedby="@DescribedBy("EndsAt")" />
+            @FieldErrors("EndsAt")
+        </div>
+
+        <button type="submit" class="btn">Summon This Seance</button>
+    </form>
+}
+
+@code {
+    private static readonly string[] DateTimeFormats = ["yyyy-MM-ddTHH:mm", "yyyy-MM-ddTHH:mm:ss"];
+
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    // Raw strings: invalid or empty input must reach our validation instead of failing model binding.
+    [SupplyParameterFromForm(FormName = "BookSeance")]
+    public SeanceForm? Form { get; set; }
+
+    private IReadOnlyList<MediumDto> _activeMediums = [];
+    private Dictionary<string, string[]> _errors = [];
+    private string? _formError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Form ??= new();
+        var mediums = await MediumsService.GetMediumsAsync(CancellationToken.None);
+        _activeMediums = mediums.Where(m => m.IsActive).ToList();
+    }
+
+    private async Task BookAsync()
+    {
+        Form ??= new();
+        _errors = Validate(Form, out var mediumId, out var startsAt, out var endsAt);
+        if (_errors.Count > 0)
+        {
+            SetStatus(StatusCodes.Status400BadRequest);
+            return;
+        }
+
+        try
+        {
+            await SeancesService.BookSeanceAsync(mediumId, Form.ClientName!, startsAt, endsAt, CancellationToken.None);
+        }
+        catch (ValidationException ex)
+        {
+            _errors = ex.Errors;
+            SetStatus(StatusCodes.Status400BadRequest);
+            return;
+        }
+        catch (NotFoundException ex)
+        {
+            _formError = ex.Message;
+            SetStatus(StatusCodes.Status404NotFound);
+            return;
+        }
+        catch (ConflictException ex)
+        {
+            _formError = ex.Message;
+            SetStatus(StatusCodes.Status409Conflict);
+            return;
+        }
+
+        // Post/Redirect/Get: a refresh must not book the seance again.
+        NavigationManager.NavigateTo("/schedule?booked=1");
+    }
+
+    private static Dictionary<string, string[]> Validate(SeanceForm form, out int mediumId, out DateTime startsAt, out DateTime endsAt)
+    {
+        var parsedMedium = int.TryParse(form.MediumId, NumberStyles.None, CultureInfo.InvariantCulture, out mediumId);
+        var parsedStart = TryParseUtc(form.StartsAt, out startsAt);
+        var parsedEnd = TryParseUtc(form.EndsAt, out endsAt);
+
+        var errors = new CreateSeanceRequest(mediumId, form.ClientName, startsAt, endsAt).Validate();
+        if (!parsedMedium)
+        {
+            errors["MediumId"] = ["Choose a medium."];
+        }
+
+        if (!parsedStart && !string.IsNullOrWhiteSpace(form.StartsAt))
+        {
+            errors[nameof(CreateSeanceRequest.StartsAt)] = ["Start time is not a valid date and time."];
+        }
+
+        if (!parsedEnd && !string.IsNullOrWhiteSpace(form.EndsAt))
+        {
+            errors[nameof(CreateSeanceRequest.EndsAt)] = ["End time is not a valid date and time."];
+        }
+
+        return errors;
+    }
+
+    private static bool TryParseUtc(string? value, out DateTime result) =>
+        DateTime.TryParseExact(value, DateTimeFormats, CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out result);
+
+    private string? Invalid(string field) => _errors.ContainsKey(field) ? "true" : null;
+
+    private string? DescribedBy(string field) => _errors.ContainsKey(field) ? $"seance-{field.ToLowerInvariant()}-error" : null;
+
+    private RenderFragment? FieldErrors(string field) => _errors.TryGetValue(field, out var messages)
+        ? @<span class="field-error" id="@DescribedBy(field)">@string.Join(" ", messages)</span>
+        : null;
+
+    private void SetStatus(int statusCode)
+    {
+        if (HttpContext is not null)
+        {
+            HttpContext.Response.StatusCode = statusCode;
+        }
+    }
+
+    public sealed class SeanceForm
+    {
+        public string? MediumId { get; set; }
+        public string? ClientName { get; set; }
+        public string? StartsAt { get; set; }
+        public string? EndsAt { get; set; }
+    }
+}

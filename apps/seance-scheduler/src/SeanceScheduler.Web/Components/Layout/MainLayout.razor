@@ -3,13 +3,19 @@
 <div class="page">
     <div class="sidebar">
         <nav>
-            <div class="title">Crypt App</div>
+            <div class="title">Seance Scheduler</div>
             <ul>
                 <li>
-                    <a href="/">Home</a>
+                    <NavLink href="/" Match="NavLinkMatch.All">Home</NavLink>
                 </li>
                 <li>
-                    <a href="/api/items" target="_blank">API Items</a>
+                    <NavLink href="/schedule" Match="NavLinkMatch.All">View the Schedule</NavLink>
+                </li>
+                <li>
+                    <NavLink href="/schedule/new">Book a Seance</NavLink>
+                </li>
+                <li>
+                    <NavLink href="/mediums">Mediums</NavLink>
                 </li>
             </ul>
         </nav>
