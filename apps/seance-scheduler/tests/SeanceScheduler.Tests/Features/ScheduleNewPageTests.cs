@@ -101,6 +101,39 @@ public class ScheduleNewPageTests : IClassFixture<TestDatabaseFixture>
     }
 
     [Fact]
+    public async Task Book_NoMediumChosen_MarksSelectInvalid()
+    {
+        await CreateMediumAsync();
+
+        var response = await PostBookAsync("", "Seeker", Local(10), Local(11));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var html = await response.Content.ReadAsStringAsync();
+        var select = PageForms.ElementTag(html, "seance-medium");
+        Assert.NotNull(select);
+        Assert.Contains("aria-invalid=\"true\"", select);
+        Assert.Contains("aria-describedby=\"seance-mediumid-error\"", select);
+        Assert.NotNull(PageForms.ElementTag(html, "seance-mediumid-error"));
+    }
+
+    [Fact]
+    public async Task Book_PastStart_Returns400FromServiceRules()
+    {
+        var mediumId = await CreateMediumAsync();
+        var yesterday = DateTime.UtcNow.Date.AddDays(-1);
+        string Past(int hour) => yesterday.AddHours(hour).ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
+
+        // Well-formed input that only the service rules (which know the clock) reject.
+        var response = await PostBookAsync(mediumId.ToString(CultureInfo.InvariantCulture), "Seeker", Past(10), Past(11));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var html = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Start time must be in the future.", html);
+        Assert.Contains("aria-describedby=\"seance-startsat-error\"", PageForms.ElementTag(html, "seance-startsat"));
+        Assert.Empty(await SeancesOfAsync(mediumId));
+    }
+
+    [Fact]
     public async Task Book_Overlap_Returns409WithMessageAndKeepsValues()
     {
         var mediumId = await CreateMediumAsync();

@@ -81,10 +81,13 @@ public class MediumsPageTests : IClassFixture<TestDatabaseFixture>
     [Fact]
     public async Task Create_WithoutAntiforgeryToken_Returns400()
     {
+        var name = UniqueName();
         var response = await PageForms.PostAsync(_client, "/mediums", "CreateMedium",
-            [new("Form.Name", UniqueName())], withToken: false);
+            [new("Form.Name", name)], withToken: false);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var mediums = await _client.GetFromJsonAsync<List<MediumDto>>("/api/mediums");
+        Assert.DoesNotContain(mediums!, m => m.Name == name);
     }
 
     [Fact]
