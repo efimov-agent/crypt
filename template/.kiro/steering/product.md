@@ -22,7 +22,7 @@ The UI has a Halloween theme that is:
 
 ## UI Styling
 
-The app uses a dark theme (`wwwroot/styles.css`):
+The app uses a dark theme (`src/CryptApp.Web/wwwroot/css/app.css`):
 - Background: `#0f0f1a` (dark navy/black)
 - Sidebar: `#1a1a2e`
 - Accent: `#e94560` (red/pink)

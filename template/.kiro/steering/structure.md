@@ -1,23 +1,24 @@
 # CryptApp - Project Structure
 
-## Generated Project Structure
-
-When you run `dotnet new crypt -n MyApp`, the following structure is created:
+## Solution Layout
 
 ```
-MyApp/
+CryptApp/
 ├── src/
-│   └── MyApp.Web/
+│   └── CryptApp.Web/
 │       ├── Components/
 │       │   ├── Layout/
 │       │   │   ├── MainLayout.razor
 │       │   │   └── MainLayout.razor.css
 │       │   ├── Pages/
-│       │   │   └── Index.razor
+│       │   │   ├── Index.razor
+│       │   │   └── Error.razor
 │       │   ├── App.razor
+│       │   ├── Routes.razor
 │       │   └── _Imports.razor
 │       ├── Features/
 │       │   └── Items/
+│       │       ├── CreateItemRequest.cs   # request DTO (no Id), validated in the endpoint
 │       │       ├── ItemsService.cs
 │       │       └── ItemsEndpoints.cs
 │       ├── Data/
@@ -30,15 +31,15 @@ MyApp/
 │       │       └── app.css
 │       ├── App_Data/
 │       ├── Program.cs
-│       ├── MyApp.Web.csproj
+│       ├── CryptApp.Web.csproj
 │       └── Properties/
 ├── tests/
-│   └── MyApp.Tests/
+│   └── CryptApp.Tests/
 │       ├── Fixtures/
 │       │   └── TestDatabaseFixture.cs
 │       ├── Features/
 │       │   └── ItemsTests.cs
-│       └── MyApp.Tests.csproj
+│       └── CryptApp.Tests.csproj
 ├── .kiro/
 │   ├── steering/
 │   ├── hooks/dotnet.json
@@ -48,7 +49,7 @@ MyApp/
 ├── docker-compose.yml
 ├── .dockerignore
 ├── .config/dotnet-tools.json
-├── MyApp.slnx
+├── CryptApp.slnx
 └── README.md
 ```
 
@@ -71,7 +72,7 @@ dotnet build
 dotnet test
 
 # Run specific project
-dotnet run --project src/MyApp.Web
+dotnet run --project src/CryptApp.Web
 
 ```
 
