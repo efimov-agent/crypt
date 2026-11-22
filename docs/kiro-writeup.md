@@ -2,9 +2,13 @@
 
 Crypt was built with **Kiro CLI** (3.5, Linux, headless) on the Kiro Free plan. The whole
 project is spec-driven: one spec for the template itself and one spec per app. Kiro wrote
-the specs and the first implementation of every phase; each Kiro change was then built,
-tested and reviewed before it was committed (the git history keeps Kiro's commits and
-the follow-up fixes separate, e.g. `2938102` → `06a280c`).
+the three specs, the first implementation of the template (phases 1–6) and the first pass
+of both app backends. Kiro output was committed as-is and then checked — build, tests,
+code review — with the fixes in separate commits, so the history shows exactly what Kiro
+produced and what had to change (e.g. `2938102` "unreviewed" → `06a280c` fixes,
+`7c922d3` → `e51189e`). The Free plan's credits ran out during the second app, so its
+pages, the test suites and the Playwright e2e tests were written without Kiro, following
+the tasks in the spec.
 
 ## 1. Steering first
 
@@ -23,22 +27,27 @@ steering already say `Foo`. Both apps (`apps/*/.kiro/steering/`) were generated 
 
 | Spec | Requirements → design → tasks | Implemented by Kiro |
 |---|---|---|
-| [`crypt-template`](../.kiro/specs/crypt-template) | the skeleton: layers, health, Docker, tests, `.kiro`, NuGet packaging | phases 1–6 in one run, then 7–10 |
-| [`stock-tracking`](../apps/haunted-inventory/.kiro/specs/stock-tracking) | SKU, quantities, stock movements, low-stock filter, Blazor pages | backend tasks 1–6, then pages |
-| [`seance-booking`](../apps/seance-scheduler/.kiro/specs/seance-booking) | mediums, slots, no double-booking, schedule UI, e2e | tasks 1–12 in one run |
+| [`crypt-template`](../.kiro/specs/crypt-template) | the skeleton: layers, health, Docker, tests, `.kiro`, NuGet packaging | phases 1–6 in one run; phases 7–10 (`.kiro` for generated apps, packaging) reworked without Kiro |
+| [`stock-tracking`](../apps/haunted-inventory/.kiro/specs/stock-tracking) | SKU, quantities, stock movements, low-stock filter, Blazor pages | backend tasks 1–6 |
+| [`seance-booking`](../apps/seance-scheduler/.kiro/specs/seance-booking) | mediums, slots, no double-booking, schedule UI, e2e | backend tasks 1–12 in one run |
 
-What paid off was **reviewing the spec before the code**. Each spec got one revision pass
-(commits `701ec6e`, `c1f842d`) that fixed design problems while they were still cheap:
+What paid off was **reviewing the spec before the code**. Each app spec got a revision
+pass before implementation (the committed versions, `701ec6e` and `c1f842d`, are the
+revised ones) that fixed design problems while they were still cheap:
 
 - *stock-tracking*: the first design read the quantity, checked it in C# and wrote it back —
   a lost update under concurrency. The revised design uses a single conditional
   `UPDATE … SET Quantity = Quantity + @delta WHERE Quantity + @delta >= 0`, and a migration
   step that backfills SKUs for existing rows **before** the unique index is created.
-- *seance-booking*: the first design had a unique index on `(MediumId, StartsAt)`, which
-  does not prevent *overlapping* slots and blocks re-booking a cancelled slot. The revised
-  design uses a non-unique index plus an overlap check inside a `BEGIN IMMEDIATE`
-  transaction, a UTC value converter (SQLite returns `DateTimeKind.Unspecified`), atomic
-  cancel, and real concurrency tests (20 parallel bookings → exactly one `201`).
+- *seance-booking*: the draft already serialized bookings with `BEGIN IMMEDIATE`, but it
+  put a **unique** index on `(MediumId, StartsAt, EndsAt, Status)` "for efficient overlap
+  detection". That index prevents nothing useful and breaks a legal case: book a slot,
+  cancel it, book it again, cancel again — two identical `Cancelled` rows violate the key.
+  The revision made it a plain non-unique index on `(MediumId, StartsAt)`, switched the
+  medium foreign key from cascade delete to `Restrict` (deleting a medium must not erase
+  booking history), dropped an incorrect note that SQLite locking only works in a single
+  process, and added a UTC value converter (SQLite returns `DateTimeKind.Unspecified`),
+  an atomic cancel and real concurrency tests (20 parallel bookings → exactly one `201`).
 
 Tasks in `tasks.md` reference requirement ids and are ticked as they are completed, so the
 spec doubles as the progress log.
@@ -48,24 +57,27 @@ spec doubles as the progress log.
 Every generated app has two hooks:
 
 - **`test-on-stop`** — when the agent finishes a turn, run `dotnet test` once. The output
-  is redirected to **stderr**: we found that is the channel the agent actually sees, so a
-  red test comes back into the conversation instead of being silently logged.
-- **`guard-migrations`** — blocks hand edits of EF-generated `*.Designer.cs` and the model
-  snapshot and tells the agent to use `dotnet ef migrations add`. Editing `Up`/`Down` of a
-  new migration (for data backfills) stays allowed.
+  is redirected to **stderr**, the stream Kiro CLI surfaces for hook commands (stdout of a
+  failing build was not shown).
+- **`guard-migrations`** — stops edits of EF-generated `*.Designer.cs` and the model
+  snapshot and tells the agent to use `dotnet ef migrations add`. In Kiro CLI it is a
+  `PreToolUse` hook that **blocks** the write; in Kiro IDE it is a `PostFileSave` hook that
+  asks the agent to revert the edit. Editing `Up`/`Down` of a new migration (for data
+  backfills) stays allowed.
 
 Experiments with Kiro CLI hooks shaped the final design:
 
 - Kiro CLI does not read standalone hook files; hooks have to be declared **inline in the
   agent config** (`.kiro/agents/*.json`, `"hooks"` array). Kiro IDE reads
-  `.kiro/hooks/*.json`. The template ships **both formats** for the same two hooks.
+  `.kiro/hooks/*.json` (per the Kiro docs; the project was built with the CLI only). The
+  template ships **both formats** for the same two hooks.
 - A `PostToolUse` hook runs after the write has already happened and its output is not
   shown to the model — useless as a guard. A **`PreToolUse` hook with exit code 2** blocks
   the tool call and its stderr is returned to the model. The guard was rewritten that way
   and limited to write tools (`fs_write|fs_append|str_replace`) so the agent can still
   *read* generated files.
-- A per-save build hook was too slow and noisy for a .NET solution; one test run on
-  `Stop` gives the same safety net.
+- Design choice: the first template version built the solution on every file save; it was
+  replaced by one test run on `Stop` — fewer runs, and the tests cover the build anyway.
 
 ## 4. Custom agents
 

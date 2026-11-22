@@ -5,7 +5,7 @@ Copy-paste material for the Devpost form. Placeholders: `<REPO_URL>`, `<HAUNTED_
 
 - **Project name:** Crypt — a Kiro-ready .NET skeleton
 - **Category:** Skeleton Crew
-- **Tagline (≤200 chars):** A `dotnet new` template that ships with Kiro steering, specs, custom agents and guard-rail hooks — proven by two haunted business apps built from it.
+- **Tagline (≤200 chars):** A `dotnet new` template that ships with Kiro steering, custom agents and guard-rail hooks — proven by two haunted business apps built from it with Kiro specs.
 - **Repository:** `<REPO_URL>` (MIT, `/.kiro` at the root)
 - **Live apps:** Haunted Inventory `<HAUNTED_URL>`, Seance Scheduler `<SEANCE_URL>` (no login needed)
 - **Video:** `<VIDEO_URL>`
@@ -31,7 +31,8 @@ SSR, EF Core, SQLite, Docker). Every generated app contains a ready `.kiro` fold
 - **Two custom agents**: `feature-scaffold` (adds a vertical slice: entity → service →
   endpoint → tests → page) and `migrations` (EF Core migrations, done safely).
 - **Hooks** in both Kiro IDE and Kiro CLI format: run the tests when the agent stops, and
-  block hand edits of EF-generated migration files.
+  stop edits of EF-generated migration files (blocked before the write in Kiro CLI,
+  flagged after save in Kiro IDE).
 
 To show it is a real skeleton and not a one-off, two very different apps were built from it,
 each with its own Kiro spec:
@@ -39,13 +40,15 @@ each with its own Kiro spec:
 - **Haunted Inventory** — stock for a costume and prop rental shop: SKUs, quantities,
   reorder levels, stock movements with history and a low-stock filter. Stock can never go
   below zero, even with 20 concurrent movements on one item.
-- **Seance Scheduler** — bookings with mediums: 15-minute slots, a schedule grouped by day,
+- **Seance Scheduler** — bookings with mediums: 30-minute to 4-hour seances on a
+  15-minute grid, a schedule grouped by day,
   cancellation. A slot can never be double-booked: 20 parallel bookings of the same slot
   give exactly one success and nineteen `409 Conflict`.
 
-Both have a dark, accessible UI (WCAG AA contrast, labelled forms, errors linked to fields
-with `aria-describedby`, values kept after a failed submit) and a JSON API with
-`application/problem+json` errors.
+Both have a dark UI with AA-contrast colours, labelled forms with antiforgery and
+Post/Redirect/Get, and a JSON API. Seance Scheduler goes further: errors linked to their
+fields with `aria-invalid` + `aria-describedby`, values kept after a failed submit, and
+`application/problem+json` for every API error.
 
 ## How I built it
 
@@ -55,9 +58,10 @@ Spec-driven, with Kiro CLI running headless on a Linux server:
    Kiro implemented the skeleton phase by phase.
 2. Generated each app with `dotnet new crypt`, wrote an app spec with Kiro
    (`stock-tracking`, `seance-booking`), **reviewed `design.md` like a pull request**, and
-   let Kiro implement the tasks.
-3. Every Kiro run was built, tested and reviewed before commit; tests were extended with
-   concurrency tests, page tests and Playwright end-to-end tests.
+   let Kiro implement the backend tasks.
+3. Kiro output was committed as-is, then built, tested and reviewed, with fixes in separate
+   commits. When the Free plan's credits ran out, the remaining tasks of the second app
+   (pages, tests, Playwright e2e) were finished without Kiro, still following the spec.
 
 Kiro features used: specs, steering, custom agents with file prompts and resources, hooks
 (`Stop`, `PreToolUse`), headless `kiro-cli chat --no-interactive`, per-task model choice to
@@ -68,11 +72,12 @@ stay within the Free plan's credits. Full writeup: `docs/kiro-writeup.md`.
 - **Hooks that look right but do nothing.** Kiro CLI ignores standalone hook files — hooks
   must live inside the agent config. A `PostToolUse` guard runs after the damage is done and
   its output never reaches the model; the working guard is `PreToolUse` with exit code 2.
-  Test output also had to go to stderr to come back into the conversation.
-- **Concurrency on SQLite.** The first designs had a read-check-write stock update and a
-  unique index that did not stop overlapping bookings. Fixed in the spec: a conditional
-  `UPDATE … WHERE Quantity + delta >= 0` and an overlap check in a `BEGIN IMMEDIATE`
-  transaction, both proven by parallel tests.
+  Test output had to go to stderr to be shown at all.
+- **Concurrency on SQLite.** The first stock design was read-check-write (a lost update
+  under load); the first booking design had a unique index that broke re-booking a
+  cancelled slot. Fixed in the specs: a conditional `UPDATE … WHERE Quantity + delta >= 0`,
+  and a non-unique index with the overlap check inside a `BEGIN IMMEDIATE` transaction —
+  both proven by parallel tests.
 - **Time zones.** SQLite returns `DateTimeKind.Unspecified`; without explicit UTC
   converters the rules behaved differently on a server in Berlin and one in UTC.
 - **Blazor SSR quirks**, e.g. a static `<title>` silently overriding every `PageTitle`, and

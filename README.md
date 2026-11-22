@@ -2,10 +2,11 @@
 
 **Crypt** is a `dotnet new` template for small business web apps on .NET 10
 (ASP.NET Core minimal API + Blazor SSR + EF Core + Docker) that ships with a complete
-`.kiro` folder: steering docs, two custom agents with hooks, and a spec workflow.
+`.kiro` folder: steering docs and two custom agents with hooks.
 Generate a project, open it in Kiro, and the agent already knows the stack, the folder
 layout and the rules — and the hooks keep it honest (tests run when the agent stops,
-hand edits of generated EF migration files are blocked).
+edits of generated EF migration files are blocked in Kiro CLI and flagged in Kiro IDE).
+Each app built from it adds its own Kiro spec.
 
 Two distinct apps were built from the same skeleton to show its versatility:
 
@@ -13,7 +14,7 @@ Two distinct apps were built from the same skeleton to show its versatility:
 |---|---|---|
 | [`template/`](template) | **Crypt** template | The skeleton itself: feature-sliced app, 15 tests, Dockerfile + compose, `.kiro` |
 | [`apps/haunted-inventory/`](apps/haunted-inventory) | **Haunted Inventory** — stock for a costume & prop rental shop | SKU, quantities, reorder levels, atomic stock movements (never below zero, also under 20 concurrent requests), movement history, low-stock filter |
-| [`apps/seance-scheduler/`](apps/seance-scheduler) | **Seance Scheduler** — bookings with mediums | Mediums, 15-minute slots, no double-booking under concurrency (`BEGIN IMMEDIATE`), schedule by day, cancellation, problem+json API errors |
+| [`apps/seance-scheduler/`](apps/seance-scheduler) | **Seance Scheduler** — bookings with mediums | Mediums, seances on a 15-minute grid, no double-booking under concurrency (`BEGIN IMMEDIATE`), schedule by day, cancellation, problem+json API errors |
 
 How Kiro was used (specs, steering, hooks, custom agents, Kiro CLI headless):
 see [docs/kiro-writeup.md](docs/kiro-writeup.md).
@@ -44,21 +45,22 @@ The template can also be packed as a NuGet package: `dotnet pack Crypt.Templates
 ### Run the two apps
 
 ```bash
-cd apps/haunted-inventory && dotnet test HauntedInventory.slnx && dotnet run --project src/HauntedInventory.Web
-cd apps/seance-scheduler  && dotnet test SeanceScheduler.slnx  && dotnet run --project src/SeanceScheduler.Web
+# from the repo root, one app at a time
+(cd apps/haunted-inventory && dotnet test HauntedInventory.slnx && dotnet run --project src/HauntedInventory.Web)
+(cd apps/seance-scheduler  && dotnet test SeanceScheduler.slnx  && dotnet run --project src/SeanceScheduler.Web)
 ```
 
 The test suites include browser e2e tests (Playwright, headless Chromium); the first run
-downloads Chromium. Both apps add the form patterns on top of the skeleton: antiforgery,
-Post/Redirect/Get, values kept after a validation error, `aria-invalid` + `aria-describedby`
-on invalid fields. Details per app: each folder has its own README.
+downloads Chromium. Both apps add forms on top of the skeleton (antiforgery,
+Post/Redirect/Get); Seance Scheduler also keeps values after a validation error and marks
+invalid fields with `aria-invalid` + `aria-describedby`. Details per app: each folder has its own README.
 
 ## What every generated app gets
 
 - **Boring-on-purpose structure**: `Features/<Feature>/` vertical slices (service with the
   business rules + minimal API endpoints + DTOs), `Data/` (EF Core context and models),
   `Migrations/`, `Components/` (Blazor SSR pages).
-- **Accessible dark theme** (WCAG AA contrast, per-page titles) with a light Halloween touch.
+- **Dark theme** with AA-contrast text and button colours, per-page titles, with a light Halloween touch.
 - **Defaults that are easy to get wrong**: UTC timestamps independent of the host time zone,
   real 404 pages for unknown routes, persisted Data Protection keys, migrations applied on
   startup, non-root container user.
