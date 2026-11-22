@@ -43,7 +43,7 @@ public class MediumsPageTests : IClassFixture<TestDatabaseFixture>
         var response = await PostCreateAsync(name, "Tarot");
 
         Assert.Equal(HttpStatusCode.Found, response.StatusCode);
-        Assert.Equal("/mediums?created=1", response.Headers.Location?.OriginalString);
+        Assert.Equal("/mediums?created=1", response.Headers.Location?.PathAndQuery);
         var html = await _client.GetStringAsync("/mediums?created=1");
         Assert.Contains("The medium has been summoned.", html);
         Assert.Contains(name, html);
@@ -99,7 +99,7 @@ public class MediumsPageTests : IClassFixture<TestDatabaseFixture>
             [new("DeactivateId", id.ToString())]);
 
         Assert.Equal(HttpStatusCode.Found, response.StatusCode);
-        Assert.Equal("/mediums?deactivated=1", response.Headers.Location?.OriginalString);
+        Assert.Equal("/mediums?deactivated=1", response.Headers.Location?.PathAndQuery);
         var medium = await _client.GetFromJsonAsync<MediumDto>($"/api/mediums/{id}");
         Assert.False(medium!.IsActive);
         var html = await _client.GetStringAsync("/mediums?deactivated=1");
@@ -115,6 +115,7 @@ public class MediumsPageTests : IClassFixture<TestDatabaseFixture>
             [new("DeactivateId", "999999")]);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Contains("role=\"alert\"", await response.Content.ReadAsStringAsync());
+        var body404 = await response.Content.ReadAsStringAsync(); System.Console.WriteLine("BODY404:" + response.Headers + response.Content.Headers + "LEN" + body404.Length);
+        Assert.Contains("role=\"alert\"", body404);
     }
 }
