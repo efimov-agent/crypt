@@ -1,0 +1,234 @@
+@page "/items/{Id:int}"
+@using HauntedInventory.Web.Data.Models
+@using HauntedInventory.Web.Features.Items
+@inject ItemsService ItemsService
+@inject StockMovementsService StockMovementsService
+@inject NavigationManager NavigationManager
+
+<h1>Item Details</h1>
+
+@if (_notFound)
+{
+    <div class="error">
+        <h2>Item Not Found</h2>
+        <p>The requested item could not be found.</p>
+    </div>
+}
+else if (_item == null)
+{
+    <p class="loading">Loading...</p>
+}
+else
+{
+    <div class="item-header">
+        <h2>@_item.Name</h2>
+        <p><code>@_item.Sku</code></p>
+        
+        <div class="quantity-display @(IsLowStock ? "low-stock" : "")">
+            <span class="label">Quantity:</span>
+            <span class="value">@_item.Quantity</span>
+            @if (IsLowStock)
+            {
+                <span class="badge badge-low">Low Stock</span>
+            }
+        </div>
+        
+        <p><span class="label">Reorder Level:</span> @_item.ReorderLevel</p>
+        
+        @if (!string.IsNullOrEmpty(_item.Description))
+        {
+            <p class="description">@_item.Description</p>
+        }
+    </div>
+
+    <section class="movements-section">
+        <h3>Movement History</h3>
+        
+        @if (_movements == null)
+        {
+            <p class="loading">Loading movements...</p>
+        }
+        else if (!_movements.Any())
+        {
+            <p class="empty">No movements recorded yet.</p>
+        }
+        else
+        {
+            <table class="movements-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Date</th>
+                        <th scope="col">Reason</th>
+                        <th scope="col">Delta</th>
+                        <th scope="col">Note</th>
+                        <th scope="col">Resulting Qty</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var movement in _movements)
+                    {
+                        <tr>
+                            <td>@movement.RecordedAt.ToString("g")</td>
+                            <td>@movement.Reason</td>
+                            <td class="@(movement.Delta > 0 ? "delta-positive" : "delta-negative")">
+                                @(movement.Delta > 0 ? "+" : "")@movement.Delta
+                            </td>
+                            <td>@movement.Note</td>
+                            <td>@movement.ResultingQuantity</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </section>
+
+    <section class="record-movement-section">
+        <h3>Record Movement</h3>
+        
+        @if (_recorded)
+        {
+            <div class="success-message">
+                Movement recorded successfully!
+            </div>
+        }
+        
+        @if (_errors.Count > 0)
+        {
+            <div class="error-message" role="alert">
+                <ul>
+                    @foreach (var message in _errors)
+                    {
+                        <li>@message</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <form method="post" @formname="RecordMovement" @onsubmit="RecordMovementAsync" class="movement-form">
+            <AntiforgeryToken />
+
+            <div class="form-group">
+                <label for="delta">Quantity Change</label>
+                <input type="number" id="delta" name="Form.Delta" value="@Form?.Delta" required />
+            </div>
+
+            <div class="form-group">
+                <label for="reason">Reason</label>
+                <select id="reason" name="Form.Reason" required>
+                    <option value="">Select a reason</option>
+                    @foreach (var reason in StockMovementsService.ValidReasons)
+                    {
+                        <option value="@reason" selected="@(reason == Form?.Reason)">@reason</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="note">Notes (optional)</label>
+                <textarea id="note" name="Form.Note" rows="3" maxlength="@StockMovementsService.NoteMaxLength">@Form?.Note</textarea>
+            </div>
+
+            <button type="submit" class="btn">Record Movement</button>
+        </form>
+    </section>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    [SupplyParameterFromQuery(Name = "recorded")]
+    public int? Recorded { get; set; }
+
+    [SupplyParameterFromForm(FormName = "RecordMovement")]
+    public MovementForm? Form { get; set; }
+
+    private Item? _item;
+    private IReadOnlyList<StockMovement>? _movements;
+    private bool _notFound;
+    private bool _recorded;
+    private readonly List<string> _errors = [];
+
+    private bool IsLowStock => _item != null && _item.Quantity <= _item.ReorderLevel;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Form ??= new();
+        _recorded = Recorded == 1;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _item = await ItemsService.GetItemByIdAsync(Id, CancellationToken.None);
+        if (_item is null)
+        {
+            _notFound = true;
+            if (HttpContext is not null)
+            {
+                HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+            }
+            return;
+        }
+
+        _movements = await StockMovementsService.GetMovementsAsync(Id, limit: 100, cancellationToken: CancellationToken.None);
+    }
+
+    private async Task RecordMovementAsync()
+    {
+        Form ??= new();
+        _recorded = false;
+        if (_notFound)
+        {
+            return;
+        }
+
+        var request = new CreateMovementRequest(Form.Delta, Form.Reason, Form.Note);
+        var validation = request.Validate();
+        if (validation.Count > 0)
+        {
+            _errors.AddRange(validation.SelectMany(e => e.Value));
+            SetStatus(StatusCodes.Status400BadRequest);
+            return;
+        }
+
+        try
+        {
+            await StockMovementsService.RecordMovementAsync(Id, Form.Delta!.Value, Form.Reason!, Form.Note, CancellationToken.None);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _errors.Add($"Not enough stock: {ex.Message}");
+            SetStatus(StatusCodes.Status409Conflict);
+            await LoadAsync();
+            return;
+        }
+        catch (ArgumentException ex)
+        {
+            _errors.Add(ex.Message);
+            SetStatus(StatusCodes.Status400BadRequest);
+            return;
+        }
+
+        // Post/Redirect/Get: a browser refresh must not record the movement twice.
+        NavigationManager.NavigateTo($"/items/{Id}?recorded=1");
+    }
+
+    private void SetStatus(int statusCode)
+    {
+        if (HttpContext is not null)
+        {
+            HttpContext.Response.StatusCode = statusCode;
+        }
+    }
+
+    public sealed class MovementForm
+    {
+        public int? Delta { get; set; }
+        public string? Reason { get; set; }
+        public string? Note { get; set; }
+    }
+}

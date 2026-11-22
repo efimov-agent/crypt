@@ -131,7 +131,7 @@ Small, verifiable tasks for implementing the Stock Tracking feature. Each task s
 
 ---
 
-- [ ] 10. Create Items List Blazor Page
+- [x] 10. Create Items List Blazor Page
   - Create `src/HauntedInventory.Web/Components/Pages/Items.razor` with `@page "/items"`
   - Add markup:
     - Page heading: "Stock Inventory" (spooky variant acceptable)
@@ -145,7 +145,7 @@ Small, verifiable tasks for implementing the Stock Tracking feature. Each task s
 
 ---
 
-- [ ] 11. Create Item Details Blazor Page
+- [x] 11. Create Item Details Blazor Page
   - Create `src/HauntedInventory.Web/Components/Pages/ItemDetails.razor` with `@page "/items/{Id:int}"`
   - Add markup:
     - Item header: Name, SKU, Quantity (highlight if low stock), Reorder Level, Description
@@ -159,7 +159,7 @@ Small, verifiable tasks for implementing the Stock Tracking feature. Each task s
 
 ---
 
-- [ ] 12. Update Navigation and Final Verification
+- [x] 12. Update Navigation and Final Verification
   - Update `src/HauntedInventory.Web/Components/Layout/MainLayout.razor`: add link to `/items`, label "Stock Inventory"
   - Ensure navigation styling consistent; focus states visible
   - Run final verification:

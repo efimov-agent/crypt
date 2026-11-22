@@ -125,3 +125,232 @@ pre code {
     background: none;
     padding: 0;
 }
+/* Items List Page */
+.filter-form {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: #1a1a2e;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.filter-form .form-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-form input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #e94560;
+}
+
+.filter-form label {
+    margin: 0;
+}
+
+/* Items Table */
+.items-table,
+.movements-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+}
+
+.items-table th,
+.items-table td,
+.movements-table th,
+.movements-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #1a1a2e;
+}
+
+.items-table th,
+.movements-table th {
+    background-color: #1a1a2e;
+    color: #eaeaea;
+    font-weight: 600;
+}
+
+.items-table tbody tr:hover,
+.movements-table tbody tr:hover {
+    background-color: rgba(26, 26, 46, 0.5);
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.badge-low {
+    background-color: #e94560;
+    color: #ffffff;
+}
+
+.btn-link {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background-color: #e94560;
+    color: #ffffff;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.btn-link:hover {
+    background-color: #d13650;
+    text-decoration: none;
+}
+
+.btn-link:focus-visible {
+    outline: 2px solid #e94560;
+    outline-offset: 2px;
+}
+
+/* Item Details Page */
+.item-header {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background-color: #1a1a2e;
+    border-radius: 4px;
+}
+
+.item-header h2 {
+    margin-bottom: 0.5rem;
+}
+
+.item-header code {
+    font-size: 1.1rem;
+}
+
+.quantity-display {
+    margin: 1rem 0;
+    font-size: 1.25rem;
+}
+
+.quantity-display .label {
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+.quantity-display .value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #e94560;
+}
+
+.quantity-display.low-stock .value {
+    color: #e94560;
+}
+
+.quantity-display .badge {
+    margin-left: 1rem;
+}
+
+.item-header .description {
+    margin-top: 1rem;
+    color: #b0b0b0;
+}
+
+/* Movement History Section */
+.movements-section {
+    margin-bottom: 2rem;
+}
+
+.delta-positive {
+    color: #51cf66;
+}
+
+.delta-negative {
+    color: #ff6b6b;
+}
+
+/* Record Movement Form */
+.record-movement-section {
+    padding: 1.5rem;
+    background-color: #1a1a2e;
+    border-radius: 4px;
+}
+
+.movement-form {
+    max-width: 500px;
+}
+
+.movement-form .form-group {
+    margin-bottom: 1rem;
+}
+
+.movement-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #eaeaea;
+}
+
+.movement-form input[type="number"],
+.movement-form select,
+.movement-form textarea {
+    width: 100%;
+}
+
+.movement-form textarea {
+    resize: vertical;
+}
+
+/* Form validation and messages */
+.error-message,
+.success-message {
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.error-message {
+    background-color: rgba(255, 107, 107, 0.2);
+    border: 1px solid #ff6b6b;
+    color: #ff6b6b;
+}
+
+.success-message {
+    background-color: rgba(81, 207, 102, 0.2);
+    border: 1px solid #51cf66;
+    color: #51cf66;
+}
+
+/* Loading and empty states */
+.loading,
+.empty {
+    padding: 2rem;
+    text-align: center;
+    color: #b0b0b0;
+    font-style: italic;
+}
+
+/* Error state */
+.error {
+    padding: 2rem;
+    text-align: center;
+    background-color: #1a1a2e;
+    border-radius: 4px;
+    border-left: 4px solid #ff6b6b;
+}
+
+.error h2 {
+    color: #ff6b6b;
+}
+
+/* Table responsive */
+@media (max-width: 768px) {
+    .items-table,
+    .movements-table {
+        display: block;
+        overflow-x: auto;
+    }
+}
