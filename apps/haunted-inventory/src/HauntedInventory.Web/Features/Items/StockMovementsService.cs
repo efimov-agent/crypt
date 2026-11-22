@@ -62,7 +62,12 @@ public class StockMovementsService
             if (rowsAffected == 0)
             {
                 // Check if item exists to distinguish between not found vs insufficient stock
-                var item = await _dbContext.Items.FindAsync([itemId], cancellationToken);
+                // Query the database directly: ExecuteUpdate bypasses the change tracker,
+                // so an Item already tracked in this scope would hold a stale Quantity.
+                var item = await _dbContext.Items.AsNoTracking()
+                    .Where(i => i.Id == itemId)
+                    .Select(i => new { i.Quantity })
+                    .FirstOrDefaultAsync(cancellationToken);
                 if (item == null)
                 {
                     throw new KeyNotFoundException($"Item {itemId} not found.");
@@ -75,8 +80,11 @@ public class StockMovementsService
                     $"Stock movement would result in negative quantity. Current: {item.Quantity}, Delta: {delta}");
             }
 
-            // Get the updated item to read the new quantity
-            var updatedItem = await _dbContext.Items.FindAsync([itemId], cancellationToken);
+            // Read the new quantity from the database (not the change tracker, see above)
+            var resultingQuantity = await _dbContext.Items.AsNoTracking()
+                .Where(i => i.Id == itemId)
+                .Select(i => i.Quantity)
+                .SingleAsync(cancellationToken);
 
             // Create movement record with resulting quantity
             var movement = new StockMovement
@@ -85,7 +93,7 @@ public class StockMovementsService
                 Delta = delta,
                 Reason = reason,
                 Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim(),
-                ResultingQuantity = updatedItem!.Quantity,
+                ResultingQuantity = resultingQuantity,
                 RecordedAt = DateTime.UtcNow
             };
 

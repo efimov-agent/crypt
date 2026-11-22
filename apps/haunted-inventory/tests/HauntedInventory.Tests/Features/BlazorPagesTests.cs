@@ -114,6 +114,12 @@ public class BlazorPagesTests : IClassFixture<TestDatabaseFixture>
         Assert.NotNull(finalItem);
         Assert.Equal(9, finalItem.Quantity);
 
+        // The page tracks the Item in the same DI scope; ResultingQuantity must still come from the database.
+        var history = await client.GetFromJsonAsync<GetMovementsResponse>($"/api/items/{item.Id}/movements");
+        Assert.NotNull(history);
+        Assert.Equal(9, history.Movements[0].ResultingQuantity);
+        Assert.Equal(-1, history.Movements[0].Delta);
+
         var page = await client.GetStringAsync($"/items/{item.Id}?recorded=1");
         Assert.Contains("Movement recorded successfully", page);
         Assert.Contains("Test sale", page);
