@@ -17,7 +17,7 @@ main {
 .title {
     font-size: 1.25rem;
     font-weight: bold;
-    color: #e94560;
+    color: #ff6b81;
     padding: 1rem;
     border-bottom: 1px solid #16213e;
 }
@@ -42,7 +42,7 @@ nav a {
 
 nav a:hover {
     background-color: #16213e;
-    color: #e94560;
+    color: #ff6b81;
 }
 
 nav a:focus {
@@ -57,7 +57,7 @@ nav a:focus {
 }
 
 .top-row a {
-    color: #e94560;
+    color: #ff6b81;
     text-decoration: none;
 }
 
@@ -74,11 +74,11 @@ article {
 }
 
 .not-found h1 {
-    color: #e94560;
+    color: #ff6b81;
 }
 
 .not-found a {
-    color: #e94560;
+    color: #ff6b81;
 }
 
 /* WCAG AA Contrast Requirements */

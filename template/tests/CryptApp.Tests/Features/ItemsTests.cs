@@ -119,6 +119,19 @@ public class ItemsTests : IClassFixture<TestDatabaseFixture>
         Assert.Contains("Nothing haunts this address", await response.Content.ReadAsStringAsync());
     }
 
+    [Theory]
+    [InlineData("/", "Crypt Application")]
+    [InlineData("/no-such-crypt", "Not found")]
+    public async Task Pages_HaveSingleOwnTitle(string path, string expectedTitle)
+    {
+        var html = await (await _client.GetAsync(path)).Content.ReadAsStringAsync();
+
+        // A static <title> in App.razor would shadow every <PageTitle>.
+        var titles = System.Text.RegularExpressions.Regex.Matches(html, "<title>(.*?)</title>");
+        Assert.Single(titles);
+        Assert.Equal(expectedTitle, titles[0].Groups[1].Value);
+    }
+
     [Fact]
     public async Task GetItem_NonNumericId_Returns404()
     {
