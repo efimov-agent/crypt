@@ -114,89 +114,89 @@
 
 ## Phase 5: Service Layer Tests
 
-- [ ] 13. Create MediumsService unit tests
-  - [ ] 13.1 Add `tests/SeanceScheduler.Tests/Features/MediumsServiceTests.cs`
-  - [ ] 13.2 Test `GetMediumsAsync()` returns all mediums ordered by name
-  - [ ] 13.3 Test `CreateMediumAsync()` with valid data succeeds
-  - [ ] 13.4 Test `CreateMediumAsync()` trims whitespace from name and specialty
-  - [ ] 13.5 Test `CreateMediumAsync()` with duplicate name (same case) throws ConflictException
-  - [ ] 13.6 Test `CreateMediumAsync()` with duplicate name (different case) throws ConflictException
-  - [ ] 13.7 Test `CreateMediumAsync()` with empty/null name throws ValidationException
-  - [ ] 13.8 Test `CreateMediumAsync()` with name >100 chars throws ValidationException
-  - [ ] 13.9 Test `CreateMediumAsync()` with specialty >200 chars throws ValidationException
-  - [ ] 13.10 Test `DeactivateMediumAsync()` on active medium succeeds and sets IsActive=false
-  - [ ] 13.11 Test `DeactivateMediumAsync()` on non-existent medium throws NotFoundException
+- [x] 13. Create MediumsService unit tests
+  - [x] 13.1 Add `tests/SeanceScheduler.Tests/Features/MediumsServiceTests.cs`
+  - [x] 13.2 Test `GetMediumsAsync()` returns all mediums ordered by name
+  - [x] 13.3 Test `CreateMediumAsync()` with valid data succeeds
+  - [x] 13.4 Test `CreateMediumAsync()` trims whitespace from name and specialty
+  - [x] 13.5 Test `CreateMediumAsync()` with duplicate name (same case) throws ConflictException
+  - [x] 13.6 Test `CreateMediumAsync()` with duplicate name (different case) throws ConflictException
+  - [x] 13.7 Test `CreateMediumAsync()` with empty/null name throws ValidationException
+  - [x] 13.8 Test `CreateMediumAsync()` with name >100 chars throws ValidationException
+  - [x] 13.9 Test `CreateMediumAsync()` with specialty >200 chars throws ValidationException
+  - [x] 13.10 Test `DeactivateMediumAsync()` on active medium succeeds and sets IsActive=false
+  - [x] 13.11 Test `DeactivateMediumAsync()` on non-existent medium throws NotFoundException
   - _Requirements: 1.0, 1.1, 1.2, 1.3, 1.4_
 
-- [ ] 14. Create SeancesService unit tests — Part A: Validation
-  - [ ] 14.1 Add `tests/SeanceScheduler.Tests/Features/SeancesServiceTests.cs`
-  - [ ] 14.2 Test `BookSeanceAsync()` with 29-minute duration throws ValidationException
-  - [ ] 14.3 Test `BookSeanceAsync()` with 30-minute duration succeeds
-  - [ ] 14.4 Test `BookSeanceAsync()` with 240-minute duration succeeds
-  - [ ] 14.5 Test `BookSeanceAsync()` with 241-minute duration throws ValidationException
-  - [ ] 14.6 Test `BookSeanceAsync()` with duration not multiple of 15 throws ValidationException
-  - [ ] 14.7 Test `BookSeanceAsync()` with StartsAt on 15-min boundary succeeds (test 14:00, 14:15, 14:30, 14:45)
-  - [ ] 14.8 Test `BookSeanceAsync()` with StartsAt off boundary throws ValidationException
-  - [ ] 14.9 Test `BookSeanceAsync()` with StartsAt in past throws ValidationException
-  - [ ] 14.10 Test `BookSeanceAsync()` with StartsAt in future succeeds
+- [x] 14. Create SeancesService unit tests — Part A: Validation
+  - [x] 14.1 Add `tests/SeanceScheduler.Tests/Features/SeancesServiceTests.cs`
+  - [x] 14.2 Test `BookSeanceAsync()` with 29-minute duration throws ValidationException
+  - [x] 14.3 Test `BookSeanceAsync()` with 30-minute duration succeeds
+  - [x] 14.4 Test `BookSeanceAsync()` with 240-minute duration succeeds
+  - [x] 14.5 Test `BookSeanceAsync()` with 241-minute duration throws ValidationException
+  - [x] 14.6 Test `BookSeanceAsync()` with duration not multiple of 15 throws ValidationException
+  - [x] 14.7 Test `BookSeanceAsync()` with StartsAt on 15-min boundary succeeds (test 14:00, 14:15, 14:30, 14:45)
+  - [x] 14.8 Test `BookSeanceAsync()` with StartsAt off boundary throws ValidationException
+  - [x] 14.9 Test `BookSeanceAsync()` with StartsAt in past throws ValidationException
+  - [x] 14.10 Test `BookSeanceAsync()` with StartsAt in future succeeds
   - _Requirements: 2.0, 2.1, 2.2, 2.3, 2.4_
 
-- [ ] 15. Create SeancesService unit tests — Part B: Business Rules
-  - [ ] 15.1 Test `BookSeanceAsync()` with unknown medium throws NotFoundException
-  - [ ] 15.2 Test `BookSeanceAsync()` with inactive medium throws ConflictException
-  - [ ] 15.3 Test `BookSeanceAsync()` back-to-back with existing seance succeeds (new ends at 14:30, existing starts at 14:30)
-  - [ ] 15.4 Test `BookSeanceAsync()` with overlap at start throws ConflictException
-  - [ ] 15.5 Test `BookSeanceAsync()` with overlap at end throws ConflictException
-  - [ ] 15.6 Test `BookSeanceAsync()` with full containment overlap throws ConflictException
-  - [ ] 15.7 Test `BookSeanceAsync()` with existing seance fully contained throws ConflictException
-  - [ ] 15.8 Test `BookSeanceAsync()` does not check Cancelled seances (can book over a Cancelled seance)
+- [x] 15. Create SeancesService unit tests — Part B: Business Rules
+  - [x] 15.1 Test `BookSeanceAsync()` with unknown medium throws NotFoundException
+  - [x] 15.2 Test `BookSeanceAsync()` with inactive medium throws ConflictException
+  - [x] 15.3 Test `BookSeanceAsync()` back-to-back with existing seance succeeds (new ends at 14:30, existing starts at 14:30)
+  - [x] 15.4 Test `BookSeanceAsync()` with overlap at start throws ConflictException
+  - [x] 15.5 Test `BookSeanceAsync()` with overlap at end throws ConflictException
+  - [x] 15.6 Test `BookSeanceAsync()` with full containment overlap throws ConflictException
+  - [x] 15.7 Test `BookSeanceAsync()` with existing seance fully contained throws ConflictException
+  - [x] 15.8 Test `BookSeanceAsync()` does not check Cancelled seances (can book over a Cancelled seance)
   - _Requirements: 2.0, 2.1, 2.2, 2.3, 2.4_
 
-- [ ] 16. Create SeancesService unit tests — Part C: Concurrency
-  - [ ] 16.1 Test `CancelSeanceAsync()` on Scheduled seance succeeds and sets Status="Cancelled" and CancelledAt=UtcNow
-  - [ ] 16.2 Test `CancelSeanceAsync()` on already-Cancelled seance throws ConflictException
-  - [ ] 16.3 Test `CancelSeanceAsync()` on non-existent seance throws NotFoundException
-  - [ ] 16.4 Test `GetSeancesAsync()` with no filters returns all Scheduled seances ordered by StartsAt/Id
-  - [ ] 16.5 Test `GetSeancesAsync()` filters by mediumId correctly
-  - [ ] 16.6 Test `GetSeancesAsync()` filters by from/to date range correctly
-  - [ ] 16.7 Test concurrent overlapping bookings for same medium: spawn 20 tasks, each with its OWN DI scope/DbContext (or via HttpClient), against a file-based SQLite DB (not a shared in-memory connection, which would serialize everything and prove nothing); assert exactly 1 succeeds and 19 get ConflictException/409, and the DB holds exactly 1 Scheduled seance
-  - [ ] 16.8 Test two concurrent cancels of the same seance: exactly one succeeds, the other gets 409
+- [x] 16. Create SeancesService unit tests — Part C: Concurrency
+  - [x] 16.1 Test `CancelSeanceAsync()` on Scheduled seance succeeds and sets Status="Cancelled" and CancelledAt=UtcNow
+  - [x] 16.2 Test `CancelSeanceAsync()` on already-Cancelled seance throws ConflictException
+  - [x] 16.3 Test `CancelSeanceAsync()` on non-existent seance throws NotFoundException
+  - [x] 16.4 Test `GetSeancesAsync()` with no filters returns all Scheduled seances ordered by StartsAt/Id
+  - [x] 16.5 Test `GetSeancesAsync()` filters by mediumId correctly
+  - [x] 16.6 Test `GetSeancesAsync()` filters by from/to date range correctly
+  - [x] 16.7 Test concurrent overlapping bookings for same medium: spawn 20 tasks, each with its OWN DI scope/DbContext (or via HttpClient), against a file-based SQLite DB (not a shared in-memory connection, which would serialize everything and prove nothing); assert exactly 1 succeeds and 19 get ConflictException/409, and the DB holds exactly 1 Scheduled seance
+  - [x] 16.8 Test two concurrent cancels of the same seance: exactly one succeeds, the other gets 409
   - _Requirements: 2.0, 2.1, 2.2, 2.3, 2.4, Concurrency_
 
 ## Phase 6: Endpoint Integration Tests
 
-- [ ] 17. Create Mediums endpoint tests
-  - [ ] 17.1 Add `tests/SeanceScheduler.Tests/Features/MediumsEndpointTests.cs` using TestDatabaseFixture
-  - [ ] 17.2 Test `GET /api/mediums` returns 200 OK with list of mediums
-  - [ ] 17.3 Test `GET /api/mediums/{id}` with valid id returns 200 OK
-  - [ ] 17.4 Test `GET /api/mediums/{id}` with non-existent id returns 404
-  - [ ] 17.5 Test `POST /api/mediums` with valid data returns 201 Created with Location header
-  - [ ] 17.6 Test `POST /api/mediums` with duplicate name returns 409 Conflict ProblemDetails
-  - [ ] 17.7 Test `POST /api/mediums` with empty name returns 400 BadRequest with validation error
-  - [ ] 17.8 Test `POST /api/mediums` with name >100 chars returns 400 BadRequest
-  - [ ] 17.9 Test `POST /api/mediums/{id}/deactivate` returns 200 OK and sets IsActive=false
-  - [ ] 17.10 Test `POST /api/mediums/{id}/deactivate` with non-existent id returns 404
+- [x] 17. Create Mediums endpoint tests
+  - [x] 17.1 Add `tests/SeanceScheduler.Tests/Features/MediumsEndpointTests.cs` using TestDatabaseFixture
+  - [x] 17.2 Test `GET /api/mediums` returns 200 OK with list of mediums
+  - [x] 17.3 Test `GET /api/mediums/{id}` with valid id returns 200 OK
+  - [x] 17.4 Test `GET /api/mediums/{id}` with non-existent id returns 404
+  - [x] 17.5 Test `POST /api/mediums` with valid data returns 201 Created with Location header
+  - [x] 17.6 Test `POST /api/mediums` with duplicate name returns 409 Conflict ProblemDetails
+  - [x] 17.7 Test `POST /api/mediums` with empty name returns 400 BadRequest with validation error
+  - [x] 17.8 Test `POST /api/mediums` with name >100 chars returns 400 BadRequest
+  - [x] 17.9 Test `POST /api/mediums/{id}/deactivate` returns 200 OK and sets IsActive=false
+  - [x] 17.10 Test `POST /api/mediums/{id}/deactivate` with non-existent id returns 404
   - _Requirements: 1.0, 1.1, 1.2, 1.3, 1.4, Error Handling_
 
-- [ ] 18. Create Seances endpoint tests — Part A: Happy Paths
-  - [ ] 18.1 Add `tests/SeanceScheduler.Tests/Features/SeancesEndpointTests.cs` using TestDatabaseFixture
-  - [ ] 18.2 Test `POST /api/seances` with valid data returns 201 Created with Location header and SeanceDto
-  - [ ] 18.3 Test `GET /api/seances` returns 200 OK with list of Scheduled seances ordered by StartsAt/Id
-  - [ ] 18.4 Test `GET /api/seances` with mediumId filter works correctly
-  - [ ] 18.5 Test `GET /api/seances` with from/to date filters works correctly
-  - [ ] 18.6 Test `POST /api/seances/{id}/cancel` on Scheduled seance returns 200 OK with updated seance Status="Cancelled"
+- [x] 18. Create Seances endpoint tests — Part A: Happy Paths
+  - [x] 18.1 Add `tests/SeanceScheduler.Tests/Features/SeancesEndpointTests.cs` using TestDatabaseFixture
+  - [x] 18.2 Test `POST /api/seances` with valid data returns 201 Created with Location header and SeanceDto
+  - [x] 18.3 Test `GET /api/seances` returns 200 OK with list of Scheduled seances ordered by StartsAt/Id
+  - [x] 18.4 Test `GET /api/seances` with mediumId filter works correctly
+  - [x] 18.5 Test `GET /api/seances` with from/to date filters works correctly
+  - [x] 18.6 Test `POST /api/seances/{id}/cancel` on Scheduled seance returns 200 OK with updated seance Status="Cancelled"
   - _Requirements: 2.0, 2.1, 2.2, 2.3, 2.4, Error Handling_
 
-- [ ] 19. Create Seances endpoint tests — Part B: Error Cases
-  - [ ] 19.1 Test `POST /api/seances` with 29-minute duration returns 400 BadRequest
-  - [ ] 19.2 Test `POST /api/seances` with off-boundary StartsAt returns 400 BadRequest
-  - [ ] 19.3 Test `POST /api/seances` with past start time returns 400 BadRequest
-  - [ ] 19.4 Test `POST /api/seances` with unknown mediumId returns 404 NotFound
-  - [ ] 19.5 Test `POST /api/seances` with inactive medium returns 409 Conflict
-  - [ ] 19.6 Test `POST /api/seances` with overlapping time returns 409 Conflict ProblemDetails
-  - [ ] 19.7 Test `POST /api/seances` with invalid query params returns 400 BadRequest
-  - [ ] 19.8 Test `POST /api/seances/{id}/cancel` with non-existent id returns 404 NotFound
-  - [ ] 19.9 Test `POST /api/seances/{id}/cancel` on already-Cancelled seance returns 409 Conflict
+- [x] 19. Create Seances endpoint tests — Part B: Error Cases
+  - [x] 19.1 Test `POST /api/seances` with 29-minute duration returns 400 BadRequest
+  - [x] 19.2 Test `POST /api/seances` with off-boundary StartsAt returns 400 BadRequest
+  - [x] 19.3 Test `POST /api/seances` with past start time returns 400 BadRequest
+  - [x] 19.4 Test `POST /api/seances` with unknown mediumId returns 404 NotFound
+  - [x] 19.5 Test `POST /api/seances` with inactive medium returns 409 Conflict
+  - [x] 19.6 Test `POST /api/seances` with overlapping time returns 409 Conflict ProblemDetails
+  - [x] 19.7 Test `POST /api/seances` with invalid query params returns 400 BadRequest
+  - [x] 19.8 Test `POST /api/seances/{id}/cancel` with non-existent id returns 404 NotFound
+  - [x] 19.9 Test `POST /api/seances/{id}/cancel` on already-Cancelled seance returns 409 Conflict
   - _Requirements: 2.0, 2.1, 2.2, 2.3, 2.4, Error Handling_
 
 ## Phase 7: Blazor Pages & UI

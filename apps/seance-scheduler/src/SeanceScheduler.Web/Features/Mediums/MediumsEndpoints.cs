@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
 using SeanceScheduler.Web.Features.Common;
 
 namespace SeanceScheduler.Web.Features.Mediums;
@@ -34,14 +33,7 @@ public static class MediumsEndpoints
         if (medium == null)
         {
             logger.LogWarning("Medium {Id} not found", id);
-            return Results.NotFound(new ProblemDetails
-            {
-                Type = "https://example.com/errors/not-found",
-                Title = "Not Found",
-                Status = 404,
-                Detail = $"Medium {id} not found",
-                Instance = $"/api/mediums/{id}"
-            });
+            return ApiProblems.NotFound($"Medium {id} not found", $"/api/mediums/{id}");
         }
 
         return Results.Ok(medium);
@@ -68,14 +60,7 @@ public static class MediumsEndpoints
         catch (ConflictException ex)
         {
             logger.LogWarning("Conflict creating medium: {Message}", ex.Message);
-            return Results.Conflict(new ProblemDetails
-            {
-                Type = "https://example.com/errors/conflict",
-                Title = "Conflict",
-                Status = 409,
-                Detail = ex.Message,
-                Instance = "/api/mediums"
-            });
+            return ApiProblems.Conflict(ex.Message, "/api/mediums");
         }
     }
 
@@ -92,14 +77,7 @@ public static class MediumsEndpoints
         catch (NotFoundException ex)
         {
             logger.LogWarning("Medium {Id} not found for deactivation: {Message}", id, ex.Message);
-            return Results.NotFound(new ProblemDetails
-            {
-                Type = "https://example.com/errors/not-found",
-                Title = "Not Found",
-                Status = 404,
-                Detail = ex.Message,
-                Instance = $"/api/mediums/{id}/deactivate"
-            });
+            return ApiProblems.NotFound(ex.Message, $"/api/mediums/{id}/deactivate");
         }
     }
 }

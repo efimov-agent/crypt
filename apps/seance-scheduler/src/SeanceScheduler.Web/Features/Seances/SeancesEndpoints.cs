@@ -62,26 +62,12 @@ public static class SeancesEndpoints
         catch (NotFoundException ex)
         {
             logger.LogWarning("Not found creating seance: {Message}", ex.Message);
-            return Results.NotFound(new ProblemDetails
-            {
-                Type = "https://example.com/errors/not-found",
-                Title = "Not Found",
-                Status = 404,
-                Detail = ex.Message,
-                Instance = "/api/seances"
-            });
+            return ApiProblems.NotFound(ex.Message, "/api/seances");
         }
         catch (ConflictException ex)
         {
             logger.LogWarning("Conflict creating seance: {Message}", ex.Message);
-            return Results.Conflict(new ProblemDetails
-            {
-                Type = "https://example.com/errors/conflict",
-                Title = "Conflict",
-                Status = 409,
-                Detail = ex.Message,
-                Instance = "/api/seances"
-            });
+            return ApiProblems.Conflict(ex.Message, "/api/seances");
         }
         catch (ValidationException ex)
         {
@@ -103,26 +89,12 @@ public static class SeancesEndpoints
         catch (NotFoundException ex)
         {
             logger.LogWarning("Seance {Id} not found for cancellation: {Message}", id, ex.Message);
-            return Results.NotFound(new ProblemDetails
-            {
-                Type = "https://example.com/errors/not-found",
-                Title = "Not Found",
-                Status = 404,
-                Detail = ex.Message,
-                Instance = $"/api/seances/{id}/cancel"
-            });
+            return ApiProblems.NotFound(ex.Message, $"/api/seances/{id}/cancel");
         }
         catch (ConflictException ex)
         {
             logger.LogWarning("Conflict cancelling seance {Id}: {Message}", id, ex.Message);
-            return Results.Conflict(new ProblemDetails
-            {
-                Type = "https://example.com/errors/conflict",
-                Title = "Conflict",
-                Status = 409,
-                Detail = ex.Message,
-                Instance = $"/api/seances/{id}/cancel"
-            });
+            return ApiProblems.Conflict(ex.Message, $"/api/seances/{id}/cancel");
         }
     }
 }
