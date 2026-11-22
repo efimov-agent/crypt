@@ -92,6 +92,14 @@ public class MediumsServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task CreateMedium_ComposedAndDecomposedAccents_AreDuplicates()
+    {
+        await CreateAsync("Ren\u00e9e");
+
+        await Assert.ThrowsAsync<ConflictException>(() => CreateAsync("RENE\u0301E"));
+    }
+
+    [Fact]
     public async Task CreateMedium_UsesClockForCreatedAt()
     {
         var created = await CreateAsync("Leota");

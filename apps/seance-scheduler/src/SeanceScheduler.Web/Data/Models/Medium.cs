@@ -12,7 +12,7 @@ public class Medium
     /// <summary>Upper-cased (invariant) name: enforces case-insensitive uniqueness for any script, not only ASCII.</summary>
     public required string NormalizedName { get; set; }
 
-    public static string Normalize(string name) => name.Trim().ToUpperInvariant();
+    public static string Normalize(string name) => name.Trim().Normalize(System.Text.NormalizationForm.FormKC).ToUpperInvariant();
 
     public string? Specialty { get; set; }
 

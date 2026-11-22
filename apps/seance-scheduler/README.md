@@ -146,3 +146,8 @@ Use them from Kiro CLI, for example `kiro-cli chat --agent-engine v3 --agent fea
 ## License
 
 MIT License
+## Backups
+
+The SQLite database runs in WAL mode, so `App_Data` holds `app.db` plus `app.db-wal` and `app.db-shm`.
+Back up all three together while the app is stopped, or take a consistent online copy with
+`sqlite3 App_Data/app.db "VACUUM INTO 'backup.db'"`.
