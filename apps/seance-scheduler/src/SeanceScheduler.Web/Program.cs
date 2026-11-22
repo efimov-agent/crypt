@@ -1,5 +1,7 @@
 using SeanceScheduler.Web.Data;
 using SeanceScheduler.Web.Features.Items;
+using SeanceScheduler.Web.Features.Mediums;
+using SeanceScheduler.Web.Features.Seances;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,6 +27,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Register feature services
 builder.Services.AddScoped<ItemsService>();
+builder.Services.AddScoped<MediumsService>();
+builder.Services.AddScoped<SeancesService>();
+
+// Register TimeProvider
+builder.Services.AddSingleton(TimeProvider.System);
 
 var app = builder.Build();
 
@@ -55,6 +62,8 @@ app.UseAntiforgery();
 
 // Map API endpoints
 app.MapItemsEndpoints();
+app.MapMediumsEndpoints();
+app.MapSeancesEndpoints();
 
 // Map Razor components
 app.MapRazorComponents<SeanceScheduler.Web.Components.App>();

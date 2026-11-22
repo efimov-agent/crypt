@@ -2,62 +2,62 @@
 
 ## Phase 1: Data Models & Migrations
 
-- [ ] 1. Create Medium entity model
-  - [ ] 1.1 Add `src/SeanceScheduler.Web/Data/Models/Medium.cs`
-  - [ ] 1.2 Define properties: Id, Name, Specialty, IsActive, CreatedAt
-  - [ ] 1.3 Configure UTC datetime conversion
-  - [ ] 1.4 Add navigation property: `Seances: ICollection<Seance>`
+- [x] 1. Create Medium entity model
+  - [x] 1.1 Add `src/SeanceScheduler.Web/Data/Models/Medium.cs`
+  - [x] 1.2 Define properties: Id, Name, Specialty, IsActive, CreatedAt
+  - [x] 1.3 Configure UTC datetime conversion
+  - [x] 1.4 Add navigation property: `Seances: ICollection<Seance>`
   - _Requirements: 1.0, Data Model_
 
-- [ ] 2. Create Seance entity model
-  - [ ] 2.1 Add `src/SeanceScheduler.Web/Data/Models/Seance.cs`
-  - [ ] 2.2 Define properties: Id, MediumId, ClientName, StartsAt, EndsAt, Status, CreatedAt, CancelledAt
-  - [ ] 2.3 Configure UTC datetime conversion for all DateTime fields
-  - [ ] 2.4 Add navigation property: `Medium: Medium`
-  - [ ] 2.5 Validate Status is serialized as string enum ("Scheduled" or "Cancelled")
+- [x] 2. Create Seance entity model
+  - [x] 2.1 Add `src/SeanceScheduler.Web/Data/Models/Seance.cs`
+  - [x] 2.2 Define properties: Id, MediumId, ClientName, StartsAt, EndsAt, Status, CreatedAt, CancelledAt
+  - [x] 2.3 Configure UTC datetime conversion for all DateTime fields
+  - [x] 2.4 Add navigation property: `Medium: Medium`
+  - [x] 2.5 Validate Status is serialized as string enum ("Scheduled" or "Cancelled")
   - _Requirements: 1.0, Data Model_
 
-- [ ] 3. Update ApplicationDbContext
-  - [ ] 3.1 Add `DbSet<Medium> Mediums`
-  - [ ] 3.2 Add `DbSet<Seance> Seances`
-  - [ ] 3.3 Configure Medium entity: unique index on Name (case-insensitive COLLATE NOCASE), index on IsActive
-  - [ ] 3.4 Configure Seance entity: foreign key MediumId → Medium.Id with DeleteBehavior.Restrict, NON-unique index on (MediumId, StartsAt), Status as string (max 16), UTC value converter for all DateTime properties (SQLite returns Kind=Unspecified)
-  - [ ] 3.5 Ensure all DateTime properties use UTC conversion
+- [x] 3. Update ApplicationDbContext
+  - [x] 3.1 Add `DbSet<Medium> Mediums`
+  - [x] 3.2 Add `DbSet<Seance> Seances`
+  - [x] 3.3 Configure Medium entity: unique index on Name (case-insensitive COLLATE NOCASE), index on IsActive
+  - [x] 3.4 Configure Seance entity: foreign key MediumId → Medium.Id with DeleteBehavior.Restrict, NON-unique index on (MediumId, StartsAt), Status as string (max 16), UTC value converter for all DateTime properties (SQLite returns Kind=Unspecified)
+  - [x] 3.5 Ensure all DateTime properties use UTC conversion
   - _Requirements: 1.0, Data Model_
 
-- [ ] 4. Create and apply migration
-  - [ ] 4.1 Run `dotnet ef migrations add AddSeanceBooking --project src/SeanceScheduler.Web`
-  - [ ] 4.2 Verify migration file created in `Migrations/[timestamp]_AddSeanceBooking.cs`
-  - [ ] 4.3 Verify Designer.cs and ModelSnapshot.cs auto-generated (do NOT hand-edit)
-  - [ ] 4.4 Build solution to verify no errors
-  - [ ] 4.5 Document migration in CHANGELOG or commit message
+- [x] 4. Create and apply migration
+  - [x] 4.1 Run `dotnet ef migrations add AddSeanceBooking --project src/SeanceScheduler.Web`
+  - [x] 4.2 Verify migration file created in `Migrations/[timestamp]_AddSeanceBooking.cs`
+  - [x] 4.3 Verify Designer.cs and ModelSnapshot.cs auto-generated (do NOT hand-edit)
+  - [x] 4.4 Build solution to verify no errors
+  - [x] 4.5 Document migration in CHANGELOG or commit message
   - _Requirements: 1.0, Migration_
 
 ## Phase 2: Service & Exception Layer
 
-- [ ] 5. Create exception types
-  - [ ] 5.1 Add `src/SeanceScheduler.Web/Features/Common/NotFoundException.cs`
-  - [ ] 5.2 Add `src/SeanceScheduler.Web/Features/Common/ConflictException.cs`
-  - [ ] 5.3 Add `src/SeanceScheduler.Web/Features/Common/ValidationException.cs` with Errors dict
+- [x] 5. Create exception types
+  - [x] 5.1 Add `src/SeanceScheduler.Web/Features/Common/NotFoundException.cs`
+  - [x] 5.2 Add `src/SeanceScheduler.Web/Features/Common/ConflictException.cs`
+  - [x] 5.3 Add `src/SeanceScheduler.Web/Features/Common/ValidationException.cs` with Errors dict
   - _Requirements: Error Handling_
 
-- [ ] 6. Create MediumsService
-  - [ ] 6.1 Add `src/SeanceScheduler.Web/Features/Mediums/MediumsService.cs`
-  - [ ] 6.2 Implement `GetMediumsAsync(CancellationToken)` → returns all, ordered by Name
-  - [ ] 6.3 Implement `GetMediumByIdAsync(int, CancellationToken)` → returns Medium or null
-  - [ ] 6.4 Implement `CreateMediumAsync(string, string?, CancellationToken)` → validates unique name (case-insensitive), trims inputs, throws ConflictException on duplicate, creates record with IsActive=true and UTC CreatedAt
-  - [ ] 6.5 Implement `DeactivateMediumAsync(int, CancellationToken)` → sets IsActive=false, throws NotFoundException if not found
-  - [ ] 6.6 Add ILogger<MediumsService> logging for all operations
+- [x] 6. Create MediumsService
+  - [x] 6.1 Add `src/SeanceScheduler.Web/Features/Mediums/MediumsService.cs`
+  - [x] 6.2 Implement `GetMediumsAsync(CancellationToken)` → returns all, ordered by Name
+  - [x] 6.3 Implement `GetMediumByIdAsync(int, CancellationToken)` → returns Medium or null
+  - [x] 6.4 Implement `CreateMediumAsync(string, string?, CancellationToken)` → validates unique name (case-insensitive), trims inputs, throws ConflictException on duplicate, creates record with IsActive=true and UTC CreatedAt
+  - [x] 6.5 Implement `DeactivateMediumAsync(int, CancellationToken)` → sets IsActive=false, throws NotFoundException if not found
+  - [x] 6.6 Add ILogger<MediumsService> logging for all operations
   - _Requirements: 1.0, 1.1, 1.2, 1.3, 1.4_
 
-- [ ] 7. Create SeancesService
-  - [ ] 7.1 Add `src/SeanceScheduler.Web/Features/Seances/SeancesService.cs`
-  - [ ] 7.2 Inject ApplicationDbContext, TimeProvider, ILogger<SeancesService>
-  - [ ] 7.3 Implement `GetSeancesAsync(int?, DateTime?, DateTime?, CancellationToken)` with optional mediumId, from, to filters; return only Scheduled seances ordered by StartsAt then Id; throw ValidationException if params invalid
-  - [ ] 7.4 Implement `BookSeanceAsync(int, string, DateTime, DateTime, CancellationToken)` with comprehensive validation:
-    - [ ] 7.4.1 Validate duration 30..240 minutes and multiple of 15
-    - [ ] 7.4.2 Validate StartsAt on 15-minute boundary (minutes ∈ {0, 15, 30, 45})
-    - [ ] 7.4.3 Validate StartsAt in future (relative to TimeProvider.GetUtcNow())
+- [x] 7. Create SeancesService
+  - [x] 7.1 Add `src/SeanceScheduler.Web/Features/Seances/SeancesService.cs`
+  - [x] 7.2 Inject ApplicationDbContext, TimeProvider, ILogger<SeancesService>
+  - [x] 7.3 Implement `GetSeancesAsync(int?, DateTime?, DateTime?, CancellationToken)` with optional mediumId, from, to filters; return only Scheduled seances ordered by StartsAt then Id; throw ValidationException if params invalid
+  - [x] 7.4 Implement `BookSeanceAsync(int, string, DateTime, DateTime, CancellationToken)` with comprehensive validation:
+    - [x] 7.4.1 Validate duration 30..240 minutes and multiple of 15
+    - [x] 7.4.2 Validate StartsAt on 15-minute boundary (minutes ∈ {0, 15, 30, 45})
+    - [x] 7.4.3 Validate StartsAt in future (relative to TimeProvider.GetUtcNow())
     - [ ] 7.4.4 Validate EndsAt in future
     - [ ] 7.4.5 Fetch medium; throw NotFoundException if not found
     - [ ] 7.4.6 Throw ConflictException if medium IsActive=false
