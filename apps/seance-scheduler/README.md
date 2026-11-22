@@ -1,10 +1,10 @@
 # Seance Scheduler
 
-A Kiro-ready .NET 10 skeleton for small business web apps.
+Built from the [Crypt template](../../template) — a Kiro-ready .NET 10 skeleton for small business web apps.
 
 ## Description
 
-Book seance sessions with mediums without double-booking built with ASP.NET Core, Blazor, and Entity Framework Core.
+Book seance sessions with mediums without double-booking: manage mediums, book 15-minute-aligned slots (overlaps are rejected, even for concurrent requests), browse the schedule by day and cancel seances. ASP.NET Core minimal API + Blazor SSR + EF Core (SQLite).
 
 ## Prerequisites
 

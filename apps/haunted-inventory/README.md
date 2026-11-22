@@ -1,10 +1,10 @@
 # Haunted Inventory
 
-A Kiro-ready .NET 10 skeleton for small business web apps.
+Built from the [Crypt template](../../template) — a Kiro-ready .NET 10 skeleton for small business web apps.
 
 ## Description
 
-Stock tracking for a costume and prop rental shop built with ASP.NET Core, Blazor, and Entity Framework Core.
+Stock tracking for a costume and prop rental shop: items with SKU, quantity and reorder level, atomic stock movements (no negative stock, even under concurrent requests), movement history and a low-stock filter. ASP.NET Core minimal API + Blazor SSR + EF Core (SQLite).
 
 ## Prerequisites
 
