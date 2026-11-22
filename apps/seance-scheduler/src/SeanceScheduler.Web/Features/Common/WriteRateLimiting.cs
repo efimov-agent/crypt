@@ -31,7 +31,7 @@ public static class WriteRateLimiting
                 var options = context.HttpContext.RequestServices.GetRequiredService<IOptions<WriteRateLimitOptions>>().Value;
                 context.HttpContext.Response.Headers.RetryAfter = options.WindowSeconds.ToString();
                 context.HttpContext.Response.ContentType = "text/plain; charset=utf-8";
-                await context.HttpContext.Response.WriteAsync("Too many changes from your address. Try again in a minute.", cancellationToken);
+                await context.HttpContext.Response.WriteAsync($"Too many changes from your address. Try again in {options.WindowSeconds / 60 + 1} minutes.", cancellationToken);
             };
             limiter.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
             {
