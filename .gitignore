@@ -4,3 +4,4 @@ obj/
 *.db-journal
 .vs/
 TestResults/
+artifacts/

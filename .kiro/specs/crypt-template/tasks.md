@@ -442,22 +442,23 @@
 **[10.2]** Add template to local NuGet  
 *Requirement Ref:* US-012  
 *Description:* Package template and install locally:
-- `dotnet new install ./template/`
-- Verify via `dotnet new --search crypt`  
+- `dotnet pack Crypt.Templates.csproj -o ./artifacts` → `Crypt.Templates.<ver>.nupkg`
+- `dotnet new install ./artifacts/Crypt.Templates.<ver>.nupkg` (or `dotnet new install ./template/` for development)
+- Verify via `dotnet new list crypt`  
 *Verification:* Template appears in list; can be instantiated.
-*Status:* [ ] Pending
+*Status:* [x] Complete
 
 **[10.3]** Final integration test  
 *Requirement Ref:* US-001 through US-012  
 *Description:* End-to-end test:
-1. `dotnet new crypt -n MyAwesomeApp --desc "My Test App"`
+1. `dotnet new crypt -n MyAwesomeApp --description "My Test App"`
 2. `cd MyAwesomeApp && dotnet build`
 3. `dotnet test`
 4. `dotnet run` (verify app starts)
 5. `docker-compose up` (verify Docker works)
 6. Open in Kiro IDE (verify `.kiro/` hooks and agents work)  
 *Verification:* All steps succeed without manual intervention.
-*Status:* [ ] Pending
+*Status:* [x] Complete
 
 ---
 
