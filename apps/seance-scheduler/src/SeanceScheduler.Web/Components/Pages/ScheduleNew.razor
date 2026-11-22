@@ -21,7 +21,9 @@
 {
     <p class="empty">No active medium can hear you right now. <a href="/mediums">Summon a medium</a> first.</p>
 }
-else
+
+@* On POST the form must render even without active mediums, otherwise SSR rejects the submission with "no form named BookSeance". *@
+@if (_activeMediums.Count > 0 || IsPost)
 {
     <form method="post" @formname="BookSeance" @onsubmit="BookAsync" class="stacked-form" novalidate>
         <AntiforgeryToken />
@@ -33,7 +35,12 @@ else
                 <option value="">Choose a medium…</option>
                 @foreach (var medium in _activeMediums)
                 {
-                    <option value="@medium.Id" selected="@(Form?.MediumId == medium.Id.ToString(CultureInfo.InvariantCulture))">@medium.Name</option>
+                    <option value="@medium.Id" selected="@IsChosen(medium)">@medium.Name</option>
+                }
+                @if (_chosenInactive is not null)
+                {
+                    @* Keep the submitted choice visible after "inactive medium" so the seeker sees what failed. *@
+                    <option value="@_chosenInactive.Id" selected disabled>@_chosenInactive.Name (departed)</option>
                 }
             </select>
             @FieldErrors("MediumId")
@@ -77,6 +84,7 @@ else
     public SeanceForm? Form { get; set; }
 
     private IReadOnlyList<MediumDto> _activeMediums = [];
+    private MediumDto? _chosenInactive;
     private Dictionary<string, string[]> _errors = [];
     private string? _formError;
 
@@ -85,7 +93,12 @@ else
         Form ??= new();
         var mediums = await MediumsService.GetMediumsAsync(Aborted);
         _activeMediums = mediums.Where(m => m.IsActive).ToList();
+        _chosenInactive = IsPost ? mediums.FirstOrDefault(m => !m.IsActive && IsChosen(m)) : null;
     }
+
+    private bool IsPost => HttpMethods.IsPost(HttpContext?.Request.Method ?? string.Empty);
+
+    private bool IsChosen(MediumDto medium) => Form?.MediumId == medium.Id.ToString(CultureInfo.InvariantCulture);
 
     private async Task BookAsync()
     {

@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.RegularExpressions;
 using SeanceScheduler.Tests.Fixtures;
 using SeanceScheduler.Web.Features.Mediums;
 using SeanceScheduler.Web.Features.Seances;
@@ -173,7 +174,10 @@ public class ScheduleNewPageTests : IClassFixture<TestDatabaseFixture>
         var response = await PostBookAsync(inactive.ToString(CultureInfo.InvariantCulture), "Seeker", Local(15), Local(16));
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-        Assert.Contains("inactive", await response.Content.ReadAsStringAsync());
+        var html = await response.Content.ReadAsStringAsync();
+        Assert.Contains("inactive", html);
+        // The departed choice stays visible (selected, not submittable) instead of silently resetting.
+        Assert.Matches($"<option value=\"{inactive}\"[^>]*selected[^>]*disabled[^>]*>[^<]*\\(departed\\)", html);
         Assert.Empty(await SeancesOfAsync(inactive));
     }
 
@@ -205,5 +209,54 @@ public class ScheduleNewPageTests : IClassFixture<TestDatabaseFixture>
         Assert.Contains("<title>Book a Seance · Seance Scheduler</title>", html);
         Assert.Contains($"<option value=\"{active}\"", html);
         Assert.DoesNotContain($"<option value=\"{inactive}\"", html);
+    }
+}
+
+// Separate class = separate fixture database with no mediums at all.
+[Collection("Integration tests")]
+public class ScheduleNewWithoutMediumsPageTests : IClassFixture<TestDatabaseFixture>
+{
+    private readonly TestDatabaseFixture _fixture;
+
+    public ScheduleNewWithoutMediumsPageTests(TestDatabaseFixture fixture) => _fixture = fixture;
+
+    [Fact]
+    public async Task Get_ShowsEmptyStateWithoutForm()
+    {
+        var html = await (await PageForms.CreateNoRedirectClient(_fixture).GetAsync("/schedule/new")).Content.ReadAsStringAsync();
+
+        Assert.Contains("No active medium", html);
+        Assert.DoesNotContain("id=\"seance-medium\"", html);
+    }
+
+    [Fact]
+    public async Task Post_AfterLastMediumDeparted_IsHandledByTheForm()
+    {
+        var client = PageForms.CreateNoRedirectClient(_fixture);
+        var created = await client.PostAsJsonAsync("/api/mediums", new { name = $"Medium {Guid.NewGuid():N}" });
+        var medium = (await created.Content.ReadFromJsonAsync<MediumDto>())!;
+
+        // The seeker opened the form while the medium was active; it departs before they submit.
+        var page = await client.GetAsync("/schedule/new");
+        var token = Regex.Match(await page.Content.ReadAsStringAsync(), "name=\"__RequestVerificationToken\"[^>]*value=\"([^\"]+)\"");
+        Assert.True(token.Success);
+        (await client.PostAsync($"/api/mediums/{medium.Id}/deactivate", null)).EnsureSuccessStatusCode();
+
+        var response = await client.PostAsync("/schedule/new", new FormUrlEncodedContent(
+        [
+            new("_handler", "BookSeance"),
+            new("__RequestVerificationToken", WebUtility.HtmlDecode(token.Groups[1].Value)),
+            new("Form.MediumId", medium.Id.ToString(CultureInfo.InvariantCulture)),
+            new("Form.ClientName", "Seeker"),
+            new("Form.StartsAt", "2030-01-01T10:00"),
+            new("Form.EndsAt", "2030-01-01T11:00"),
+        ]));
+
+        // Not the framework's "no form named BookSeance" 400: our handler answers with the domain conflict.
+        var html = await response.Content.ReadAsStringAsync();
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.NotNull(PageForms.ElementTag(html, "seance-form-error"));
+        Assert.Contains("No active medium", html);
+        Assert.Contains("(departed)", html);
     }
 }
