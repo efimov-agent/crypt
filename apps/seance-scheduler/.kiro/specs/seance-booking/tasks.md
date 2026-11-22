@@ -201,89 +201,89 @@
 
 ## Phase 7: Blazor Pages & UI
 
-- [ ] 20. Create Mediums Razor page
-  - [ ] 20.1 Add `src/SeanceScheduler.Web/Components/Pages/Mediums.razor` at `/mediums` route
-  - [ ] 20.2 Display list of all mediums (name, specialty, IsActive) with dark theme styling
-  - [ ] 20.3 Add "Create Medium" form with fields: Name, Specialty
-  - [ ] 20.4 Implement form handler with `[SupplyParameterFromForm]` and antiforgery
-  - [ ] 20.5 Call `POST /api/mediums` and handle response
-  - [ ] 20.6 On 201 success, redirect to `/mediums` (PRG pattern)
-  - [ ] 20.7 On 409 conflict, keep form values and display error message inline
-  - [ ] 20.8 Display validation error messages linked via `aria-describedby` for accessibility
-  - [ ] 20.9 Add "Deactivate" button for each active medium; POST to `/api/mediums/{id}/deactivate` and refresh
-  - [ ] 20.10 Use spooky UI copy: form title "Summon a New Medium", list title "Conjured Mediums", etc.
-  - [ ] 20.11 Ensure WCAG AA contrast (4.5:1) for all text
+- [x] 20. Create Mediums Razor page
+  - [x] 20.1 Add `src/SeanceScheduler.Web/Components/Pages/Mediums.razor` at `/mediums` route
+  - [x] 20.2 Display list of all mediums (name, specialty, IsActive) with dark theme styling
+  - [x] 20.3 Add "Create Medium" form with fields: Name, Specialty
+  - [x] 20.4 Implement form handler with `[SupplyParameterFromForm]` and antiforgery
+  - [x] 20.5 Call `POST /api/mediums` and handle response
+  - [x] 20.6 On 201 success, redirect to `/mediums` (PRG pattern)
+  - [x] 20.7 On 409 conflict, keep form values and display error message inline
+  - [x] 20.8 Display validation error messages linked via `aria-describedby` for accessibility
+  - [x] 20.9 Add "Deactivate" button for each active medium; POST to `/api/mediums/{id}/deactivate` and refresh
+  - [x] 20.10 Use spooky UI copy: form title "Summon a New Medium", list title "Conjured Mediums", etc.
+  - [x] 20.11 Ensure WCAG AA contrast (4.5:1) for all text
   - _Requirements: 1.0, 1.1, 1.2, 1.3, 1.4, US-8, 3.0, UI Styling and Navigation_
 
-- [ ] 21. Create Schedule Razor page
-  - [ ] 21.1 Add `src/SeanceScheduler.Web/Components/Pages/Schedule.razor` at `/schedule` route
-  - [ ] 21.2 Fetch seances from `GET /api/seances` on page load
-  - [ ] 21.3 Group seances by date (e.g., "Monday, Dec 2") and display each group
-  - [ ] 21.4 For each seance, display: medium name, client name, start/end times in readable format
-  - [ ] 21.5 Add filter form (GET-based, no antiforgery) to filter seances by medium via `?mediumId=`
-  - [ ] 21.6 Add cancel button for each seance; POST to `/api/seances/{id}/cancel` and refresh
-  - [ ] 21.7 Show error messages if cancellation fails (e.g., 409 already cancelled)
-  - [ ] 21.8 Use spooky UI copy: page title "The Summoned Appointments", column headers "Spirit Medium", etc.
-  - [ ] 21.9 Ensure dark theme styling and WCAG AA contrast
+- [x] 21. Create Schedule Razor page
+  - [x] 21.1 Add `src/SeanceScheduler.Web/Components/Pages/Schedule.razor` at `/schedule` route
+  - [x] 21.2 Fetch seances from `GET /api/seances` on page load
+  - [x] 21.3 Group seances by date (e.g., "Monday, Dec 2") and display each group
+  - [x] 21.4 For each seance, display: medium name, client name, start/end times in readable format
+  - [x] 21.5 Add filter form (GET-based, no antiforgery) to filter seances by medium via `?mediumId=`
+  - [x] 21.6 Add cancel button for each seance; POST to `/api/seances/{id}/cancel` and refresh
+  - [x] 21.7 Show error messages if cancellation fails (e.g., 409 already cancelled)
+  - [x] 21.8 Use spooky UI copy: page title "The Summoned Appointments", column headers "Spirit Medium", etc.
+  - [x] 21.9 Ensure dark theme styling and WCAG AA contrast
   - _Requirements: 2.0, 2.1, 2.2, 2.3, 2.4, US-9, 3.0, UI Styling and Navigation_
 
-- [ ] 22. Create Schedule New Razor page
-  - [ ] 22.1 Add `src/SeanceScheduler.Web/Components/Pages/ScheduleNew.razor` at `/schedule/new` route
-  - [ ] 22.2 Fetch available mediums from `GET /api/mediums` on page load; show only IsActive=true
-  - [ ] 22.3 Implement booking form with fields: Medium (dropdown), ClientName, StartsAt (date+time), EndsAt (date+time)
-  - [ ] 22.4 Use `@formname("BookSeance")` and `[SupplyParameterFromForm]` for server-side validation
-  - [ ] 22.5 Include `<AntiforgeryToken />` in form
-  - [ ] 22.6 Implement form handler calling `POST /api/seances`
-  - [ ] 22.7 On 201 success, redirect to `/schedule` (PRG pattern)
-  - [ ] 22.8 On 409 conflict (overlapping seance), keep form values and display conflict message inline WITHOUT redirect
-  - [ ] 22.9 On 400 validation error, display validation messages for each field
-  - [ ] 22.10 Link validation error messages to form fields via `aria-describedby`; use unique IDs for each field-error pair
-  - [ ] 22.11 Style form with dark theme, ensure WCAG AA contrast (4.5:1)
-  - [ ] 22.12 Use spooky UI copy: page title "Book a Seance", button text "Summon This Seance", etc.
-  - [ ] 22.13 Test manual form submission and verify aria-describedby is correctly set
+- [x] 22. Create Schedule New Razor page
+  - [x] 22.1 Add `src/SeanceScheduler.Web/Components/Pages/ScheduleNew.razor` at `/schedule/new` route
+  - [x] 22.2 Fetch available mediums from `GET /api/mediums` on page load; show only IsActive=true
+  - [x] 22.3 Implement booking form with fields: Medium (dropdown), ClientName, StartsAt (date+time), EndsAt (date+time)
+  - [x] 22.4 Use `@formname("BookSeance")` and `[SupplyParameterFromForm]` for server-side validation
+  - [x] 22.5 Include `<AntiforgeryToken />` in form
+  - [x] 22.6 Implement form handler calling `POST /api/seances`
+  - [x] 22.7 On 201 success, redirect to `/schedule` (PRG pattern)
+  - [x] 22.8 On 409 conflict (overlapping seance), keep form values and display conflict message inline WITHOUT redirect
+  - [x] 22.9 On 400 validation error, display validation messages for each field
+  - [x] 22.10 Link validation error messages to form fields via `aria-describedby`; use unique IDs for each field-error pair
+  - [x] 22.11 Style form with dark theme, ensure WCAG AA contrast (4.5:1)
+  - [x] 22.12 Use spooky UI copy: page title "Book a Seance", button text "Summon This Seance", etc.
+  - [x] 22.13 Test manual form submission and verify aria-describedby is correctly set
   - _Requirements: 2.0, 2.1, 2.2, 2.3, 2.4, US-10, 3.0, UI Styling and Navigation_
 
-- [ ] 23. Update MainLayout and navigation
-  - [ ] 23.1 Add navigation links in `src/SeanceScheduler.Web/Components/Layout/MainLayout.razor`:
-    - [ ] 23.1.1 Link to `/mediums` labeled "Mediums" or "Summon a Medium"
-    - [ ] 23.1.2 Link to `/schedule` labeled "Schedule" or "View the Schedule"
-    - [ ] 23.1.3 Link to `/schedule/new` labeled "Book a Seance" or "Summon a Seance"
-  - [ ] 23.2 Ensure links integrate with existing dark theme navigation
-  - [ ] 23.3 Test navigation between pages
+- [x] 23. Update MainLayout and navigation
+  - [x] 23.1 Add navigation links in `src/SeanceScheduler.Web/Components/Layout/MainLayout.razor`:
+    - [x] 23.1.1 Link to `/mediums` labeled "Mediums" or "Summon a Medium"
+    - [x] 23.1.2 Link to `/schedule` labeled "Schedule" or "View the Schedule"
+    - [x] 23.1.3 Link to `/schedule/new` labeled "Book a Seance" or "Summon a Seance"
+  - [x] 23.2 Ensure links integrate with existing dark theme navigation
+  - [x] 23.3 Test navigation between pages
   - _Requirements: US-12, UI Styling and Navigation_
 
-- [ ] 24. Add CSS for seance booking pages
-  - [ ] 24.1 Review `src/SeanceScheduler.Web/wwwroot/css/app.css` for existing dark theme variables
-  - [ ] 24.2 Add styles for seance list (table or card layout), form fields, buttons, error messages as needed
-  - [ ] 24.3 Ensure all text has WCAG AA contrast (4.5:1 minimum for body text)
-  - [ ] 24.4 Test colors with contrast checker or WAVE tool
+- [x] 24. Add CSS for seance booking pages
+  - [x] 24.1 Review `src/SeanceScheduler.Web/wwwroot/css/app.css` for existing dark theme variables
+  - [x] 24.2 Add styles for seance list (table or card layout), form fields, buttons, error messages as needed
+  - [x] 24.3 Ensure all text has WCAG AA contrast (4.5:1 minimum for body text)
+  - [x] 24.4 Test colors with contrast checker or WAVE tool
   - _Requirements: US-12, 3.0, UI Styling and Navigation_
 
 ## Phase 8: UI Form Tests
 
-- [ ] 25. Create Mediums page tests
-  - [ ] 25.1 Add `tests/SeanceScheduler.Tests/Features/MediumsPageTests.cs` using TestDatabaseFixture
-  - [ ] 25.2 Test creating a medium with valid data succeeds, form values are submitted, and page redirects to `/mediums`
-  - [ ] 25.3 Test duplicate name submission shows conflict error message and keeps form values (no redirect)
-  - [ ] 25.4 Test missing name shows validation error message and keeps other form values
-  - [ ] 25.5 Test deactivate button on active medium makes POST to `/api/mediums/{id}/deactivate` and updates UI
+- [x] 25. Create Mediums page tests
+  - [x] 25.1 Add `tests/SeanceScheduler.Tests/Features/MediumsPageTests.cs` using TestDatabaseFixture
+  - [x] 25.2 Test creating a medium with valid data succeeds, form values are submitted, and page redirects to `/mediums`
+  - [x] 25.3 Test duplicate name submission shows conflict error message and keeps form values (no redirect)
+  - [x] 25.4 Test missing name shows validation error message and keeps other form values
+  - [x] 25.5 Test deactivate button on active medium makes POST to `/api/mediums/{id}/deactivate` and updates UI
   - _Requirements: US-8_
 
-- [ ] 26. Create Schedule New page tests
-  - [ ] 26.1 Add `tests/SeanceScheduler.Tests/Features/ScheduleNewPageTests.cs` using TestDatabaseFixture
-  - [ ] 26.2 Test valid booking form submission creates seance, redirects to `/schedule` (PRG)
-  - [ ] 26.3 Test 409 conflict response (overlapping seance) keeps form values and shows conflict message
-  - [ ] 26.4 Test missing antiforgery token returns 400
-  - [ ] 26.5 Test validation error (e.g., invalid duration) shows error message linked via aria-describedby
-  - [ ] 26.6 Test aria-describedby correctly links error messages to form fields (verify attribute is present and matches error ID)
+- [x] 26. Create Schedule New page tests
+  - [x] 26.1 Add `tests/SeanceScheduler.Tests/Features/ScheduleNewPageTests.cs` using TestDatabaseFixture
+  - [x] 26.2 Test valid booking form submission creates seance, redirects to `/schedule` (PRG)
+  - [x] 26.3 Test 409 conflict response (overlapping seance) keeps form values and shows conflict message
+  - [x] 26.4 Test missing antiforgery token returns 400
+  - [x] 26.5 Test validation error (e.g., invalid duration) shows error message linked via aria-describedby
+  - [x] 26.6 Test aria-describedby correctly links error messages to form fields (verify attribute is present and matches error ID)
   - _Requirements: US-10_
 
-- [ ] 27. Create Schedule page tests
-  - [ ] 27.1 Add `tests/SeanceScheduler.Tests/Features/SchedulePageTests.cs` using TestDatabaseFixture
-  - [ ] 27.2 Test seances are grouped by date and displayed correctly
-  - [ ] 27.3 Test filter by medium via GET param `?mediumId=` works
-  - [ ] 27.4 Test cancel button on seance calls POST to cancel and updates display
-  - [ ] 27.5 Test cancelled seance no longer appears in list
+- [x] 27. Create Schedule page tests
+  - [x] 27.1 Add `tests/SeanceScheduler.Tests/Features/SchedulePageTests.cs` using TestDatabaseFixture
+  - [x] 27.2 Test seances are grouped by date and displayed correctly
+  - [x] 27.3 Test filter by medium via GET param `?mediumId=` works
+  - [x] 27.4 Test cancel button on seance calls POST to cancel and updates display
+  - [x] 27.5 Test cancelled seance no longer appears in list
   - _Requirements: US-9_
 
 ## Phase 9: E2E Tests (Playwright)
