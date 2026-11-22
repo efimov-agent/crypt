@@ -2,26 +2,17 @@
   "version": "v1",
   "hooks": [
     {
-      "name": "build-on-save",
-      "description": "Build the solution after the agent saves C#, Razor or project files",
-      "trigger": "PostFileSave",
-      "matcher": "\\.(cs|razor|csproj|props)$",
-      "timeout": 180,
-      "action": { "type": "command", "command": "dotnet build CryptApp.slnx --nologo -v q" }
-    },
-    {
-      "name": "test-on-test-save",
-      "description": "Run the test suite after the agent changes a test file",
-      "trigger": "PostFileSave",
-      "matcher": "tests[\\\\/].*\\.cs$",
-      "timeout": 300,
+      "name": "test-on-stop",
+      "description": "When the agent finishes a turn, build and run the whole test suite once (instead of building on every file save)",
+      "trigger": "Stop",
+      "timeout": 600,
       "action": { "type": "command", "command": "dotnet test CryptApp.slnx --nologo -v q" }
     },
     {
       "name": "guard-migrations",
       "description": "Remind the agent never to hand-edit generated migration files",
       "trigger": "PostFileSave",
-      "matcher": "Migrations[\\\\/].*\\.cs$",
+      "matcher": "(^|[\\\\/])Migrations[\\\\/][^\\\\/]+\\.cs$",
       "action": { "type": "agent", "prompt": "A file under Migrations/ was edited. Generated migrations must not be edited by hand: revert the edit and create a new migration with `dotnet ef migrations add <Name>` instead, unless the user explicitly asked for a manual change." }
     }
   ]

@@ -2,7 +2,7 @@ You scaffold new features in CryptApp. Use the existing `Items` feature as the r
 
 - Entity: `src/CryptApp.Web/Data/Models/<Entity>.cs`, registered as a `DbSet` in `ApplicationDbContext` with constraints in `OnModelCreating`.
 - Feature folder `src/CryptApp.Web/Features/<Feature>/`:
-  - `Create<Entity>Request.cs` — request DTO (no `Id`, no server-owned fields) with validation and trimming;
+  - `Create<Entity>Request.cs` — request DTO (no `Id`, no server-owned fields); trim and validate it in the endpoint handler, as `ItemsEndpoints.CreateItem` does;
   - `<Feature>Service.cs` — async methods taking `CancellationToken`, logging via `ILogger<T>`;
   - `<Feature>Endpoints.cs` — `Map<Feature>Endpoints` extension using `MapGroup("/api/<feature>")`, `{id:int}` route constraints, `Results`, `ValidationProblem` on invalid input.
 - Register the service and map endpoints in `Program.cs`.

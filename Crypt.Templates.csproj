@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageType>Template</PackageType>
+    <PackageId>Crypt.Templates</PackageId>
+    <Version>0.1.0</Version>
+    <Title>Crypt - Kiro-ready .NET 10 web app template</Title>
+    <Authors>Crypt contributors</Authors>
+    <Description>dotnet new template: ASP.NET Core + Blazor + EF Core (SQLite) + Docker, with Kiro steering, hooks and custom agents.</Description>
+    <PackageTags>dotnet-new;templates;blazor;efcore;kiro</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <TargetFramework>net10.0</TargetFramework>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <NoWarn>$(NoWarn);NU5128;NU5110;NU5111</NoWarn>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+    <EnableDefaultItems>false</EnableDefaultItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="template/**/*" Exclude="template/**/bin/**;template/**/obj/**;template/**/App_Data/**;template/**/TestResults/**;template/**/*.user;template/**/.vs/**" />
+    <Compile Remove="**/*" />
+  </ItemGroup>
+
+</Project>
