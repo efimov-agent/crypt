@@ -89,6 +89,8 @@ else if (_mediums is not null)
     [CascadingParameter]
     public HttpContext? HttpContext { get; set; }
 
+    private CancellationToken Aborted => HttpContext?.RequestAborted ?? CancellationToken.None;
+
     [SupplyParameterFromQuery(Name = "created")]
     public int? Created { get; set; }
 
@@ -113,7 +115,7 @@ else if (_mediums is not null)
         _notice = Created == 1 ? "The medium has been summoned."
             : Deactivated == 1 ? "The medium has departed to the other side."
             : null;
-        _mediums = await MediumsService.GetMediumsAsync(CancellationToken.None);
+        _mediums = await MediumsService.GetMediumsAsync(Aborted);
     }
 
     private async Task CreateAsync()
@@ -130,7 +132,7 @@ else if (_mediums is not null)
 
         try
         {
-            await MediumsService.CreateMediumAsync(Form.Name!, Form.Specialty, CancellationToken.None);
+            await MediumsService.CreateMediumAsync(Form.Name!, Form.Specialty, Aborted);
         }
         catch (ConflictException ex)
         {
@@ -155,7 +157,7 @@ else if (_mediums is not null)
 
         try
         {
-            await MediumsService.DeactivateMediumAsync(id, CancellationToken.None);
+            await MediumsService.DeactivateMediumAsync(id, Aborted);
         }
         catch (NotFoundException ex)
         {

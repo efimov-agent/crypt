@@ -70,6 +70,8 @@ else
     [CascadingParameter]
     public HttpContext? HttpContext { get; set; }
 
+    private CancellationToken Aborted => HttpContext?.RequestAborted ?? CancellationToken.None;
+
     // Raw strings: invalid or empty input must reach our validation instead of failing model binding.
     [SupplyParameterFromForm(FormName = "BookSeance")]
     public SeanceForm? Form { get; set; }
@@ -81,7 +83,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         Form ??= new();
-        var mediums = await MediumsService.GetMediumsAsync(CancellationToken.None);
+        var mediums = await MediumsService.GetMediumsAsync(Aborted);
         _activeMediums = mediums.Where(m => m.IsActive).ToList();
     }
 
@@ -97,7 +99,7 @@ else
 
         try
         {
-            await SeancesService.BookSeanceAsync(mediumId, Form.ClientName!, startsAt, endsAt, CancellationToken.None);
+            await SeancesService.BookSeanceAsync(mediumId, Form.ClientName!, startsAt, endsAt, Aborted);
         }
         catch (ValidationException ex)
         {

@@ -84,6 +84,8 @@ else
     [CascadingParameter]
     public HttpContext? HttpContext { get; set; }
 
+    private CancellationToken Aborted => HttpContext?.RequestAborted ?? CancellationToken.None;
+
     // Raw string: the "All mediums" option submits an empty value, which must not fail binding.
     [SupplyParameterFromQuery(Name = "mediumId")]
     public string? MediumIdQuery { get; set; }
@@ -114,9 +116,9 @@ else
 
     private async Task LoadAsync()
     {
-        _mediums = await MediumsService.GetMediumsAsync(CancellationToken.None);
+        _mediums = await MediumsService.GetMediumsAsync(Aborted);
         var today = TimeProvider.GetUtcNow().UtcDateTime.Date;
-        _seances = await SeancesService.GetSeancesAsync(_mediumId, today, null, CancellationToken.None);
+        _seances = await SeancesService.GetSeancesAsync(_mediumId, today, null, Aborted);
     }
 
     private async Task CancelAsync()
@@ -131,7 +133,7 @@ else
 
         try
         {
-            await SeancesService.CancelSeanceAsync(id, CancellationToken.None);
+            await SeancesService.CancelSeanceAsync(id, Aborted);
         }
         catch (NotFoundException ex)
         {
