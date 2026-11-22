@@ -3,6 +3,7 @@
     <Project Path="src/HauntedInventory.Web/HauntedInventory.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/HauntedInventory.E2E/HauntedInventory.E2E.csproj" />
     <Project Path="tests/HauntedInventory.Tests/HauntedInventory.Tests.csproj" />
   </Folder>
 </Solution>

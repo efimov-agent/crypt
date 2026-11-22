@@ -9,10 +9,7 @@
 
 @if (_notFound)
 {
-    <div class="error">
-        <h2>Item Not Found</h2>
-        <p>The requested item could not be found.</p>
-    </div>
+    @* NavigationManager.NotFound() renders the router's NotFoundPage instead. *@
 }
 else if (_item == null)
 {
@@ -167,10 +164,8 @@ else
         if (_item is null)
         {
             _notFound = true;
-            if (HttpContext is not null)
-            {
-                HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            }
+            // Renders the router's NotFoundPage with status 404 (a bare 404 status would leave the body empty).
+            NavigationManager.NotFound();
             return;
         }
 
@@ -202,7 +197,7 @@ else
         catch (KeyNotFoundException)
         {
             _notFound = true;
-            SetStatus(StatusCodes.Status404NotFound);
+            NavigationManager.NotFound();
             return;
         }
         catch (InsufficientStockException ex)

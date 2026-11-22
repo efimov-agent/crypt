@@ -87,8 +87,18 @@ public class BlazorPagesTests : IClassFixture<TestDatabaseFixture>
         // Act
         var response = await _client.GetAsync("/items/999999");
 
-        // Assert: 404 Not Found
+        // Assert: 404 with the rendered not-found page (a bare 404 status used to leave the body empty)
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Contains("Nothing haunts this address", await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task UnknownRoute_Returns404WithNotFoundPage()
+    {
+        var response = await _client.GetAsync("/no-such-crypt");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Contains("Nothing haunts this address", await response.Content.ReadAsStringAsync());
     }
 
     #endregion

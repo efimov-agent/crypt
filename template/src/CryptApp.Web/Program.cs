@@ -42,7 +42,14 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Unknown non-API routes get the HTML not-found page; API 404s keep their own (JSON or empty) body.
+app.UseWhen(
+    context => !context.Request.Path.StartsWithSegments("/api"),
+    branch => branch.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true));
+
 app.UseStaticFiles();
+// Explicit routing after status code pages so the re-executed /not-found request is routed again.
+app.UseRouting();
 app.UseAntiforgery();
 
 // Map API endpoints

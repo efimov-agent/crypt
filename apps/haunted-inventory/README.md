@@ -39,9 +39,15 @@ The application will be available at `http://localhost:5000`.
 ### Run Tests
 
 ```bash
-# Run all tests
+# Run all tests (integration + browser e2e)
 dotnet test
+
+# Only the browser e2e tests (Playwright, headless Chromium)
+dotnet test tests/HauntedInventory.E2E
 ```
+
+The e2e tests start the real app on Kestrel (random port, throw-away SQLite file) and drive `/items` and
+`/items/{id}` in headless Chromium. The first run downloads Chromium for Playwright (~150 MB, once per machine).
 
 ## Local Development
 
@@ -110,7 +116,8 @@ HauntedInventory/
 │       ├── wwwroot/          # Static files
 │       └── App_Data/         # SQLite database
 ├── tests/
-│   └── HauntedInventory.Tests/       # Integration tests
+│   ├── HauntedInventory.Tests/       # Integration tests
+│   └── HauntedInventory.E2E/         # Browser e2e tests (Playwright)
 ├── .kiro/                    # Kiro configuration
 ├── .config/                  # Local tools (dotnet-ef)
 ├── Dockerfile

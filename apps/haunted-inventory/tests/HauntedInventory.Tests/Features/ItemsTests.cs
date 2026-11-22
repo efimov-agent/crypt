@@ -107,6 +107,9 @@ public class ItemsTests : IClassFixture<TestDatabaseFixture>
         var response = await _client.GetAsync("/api/items/999999");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        // API 404s must not be re-executed into the HTML not-found page.
+        Assert.NotEqual("text/html", response.Content.Headers.ContentType?.MediaType);
+        Assert.DoesNotContain("Nothing haunts", await response.Content.ReadAsStringAsync());
     }
 
     [Fact]
