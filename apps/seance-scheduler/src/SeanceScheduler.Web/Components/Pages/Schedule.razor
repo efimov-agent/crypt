@@ -135,7 +135,9 @@ else
         }
         catch (NotFoundException ex)
         {
-            await FailAsync(ex.Message, StatusCodes.Status404NotFound);
+            // Not 404: Blazor static SSR (.NET 10) drops the rendered body when a component sets 404,
+            // so the form error would be invisible. The JSON API still answers 404 for unknown ids.
+            await FailAsync(ex.Message, StatusCodes.Status400BadRequest);
             return;
         }
         catch (ConflictException ex)

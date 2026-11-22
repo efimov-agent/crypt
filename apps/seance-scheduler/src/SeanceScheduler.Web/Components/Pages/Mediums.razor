@@ -160,7 +160,9 @@ else if (_mediums is not null)
         catch (NotFoundException ex)
         {
             _deactivateError = ex.Message;
-            SetStatus(StatusCodes.Status404NotFound);
+            // Not 404: Blazor static SSR (.NET 10) drops the rendered body when a component sets 404,
+            // so the form error would be invisible. The JSON API still answers 404 for unknown ids.
+            SetStatus(StatusCodes.Status400BadRequest);
             return;
         }
 

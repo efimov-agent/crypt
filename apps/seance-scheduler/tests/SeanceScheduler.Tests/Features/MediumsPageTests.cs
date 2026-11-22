@@ -107,15 +107,16 @@ public class MediumsPageTests : IClassFixture<TestDatabaseFixture>
     }
 
     [Fact]
-    public async Task Deactivate_Unknown_Returns404WithMessage()
+    public async Task Deactivate_Unknown_Returns400WithMessage()
     {
         Assert.Equal(HttpStatusCode.Found, (await PostCreateAsync(UniqueName())).StatusCode);
 
         var response = await PageForms.PostAsync(_client, "/mediums", "DeactivateMedium",
             [new("DeactivateId", "999999")]);
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        var body404 = await response.Content.ReadAsStringAsync(); System.Console.WriteLine("BODY404:" + response.Headers + response.Content.Headers + "LEN" + body404.Length);
-        Assert.Contains("role=\"alert\"", body404);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var html = await response.Content.ReadAsStringAsync();
+        Assert.Contains("role=\"alert\"", html);
+        Assert.Contains("999999", html);
     }
 }
