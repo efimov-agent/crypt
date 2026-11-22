@@ -1,7 +1,0 @@
-{
-  "trigger": "PostFileSave",
-  "matcher": "\\.(cs|csproj|razor)$",
-  "action": "dotnet build",
-  "workingDirectory": "${workspaceFolder}",
-  "description": "Build project on C# or Razor file save"
-}

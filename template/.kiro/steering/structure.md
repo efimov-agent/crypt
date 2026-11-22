@@ -41,11 +41,13 @@ MyApp/
 │       └── MyApp.Tests.csproj
 ├── .kiro/
 │   ├── steering/
-│   ├── hooks/
-│   └── agents/
+│   ├── hooks/dotnet.json
+│   ├── agents/      # feature-scaffold.json, migrations.json
+│   └── prompts/     # agent system prompts
 ├── Dockerfile
 ├── docker-compose.yml
 ├── .dockerignore
+├── .config/dotnet-tools.json
 ├── MyApp.slnx
 └── README.md
 ```

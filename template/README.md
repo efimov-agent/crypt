@@ -66,18 +66,17 @@ The application uses SQLite by default. The database file is created automatical
 
 ### Entity Framework Migrations
 
+The EF Core CLI is pinned as a local tool (`.config/dotnet-tools.json`). Migrations are applied automatically on startup.
+
 ```bash
-# Navigate to web project
-cd src/CryptApp.Web
+# Restore the pinned dotnet-ef once
+dotnet tool restore
 
 # Add a migration
-dotnet ef migrations add <MigrationName>
+dotnet ef migrations add <MigrationName> --project src/CryptApp.Web
 
-# Apply migrations
-dotnet ef database update
-
-# Remove last migration
-dotnet ef migrations remove
+# Remove the last (unapplied) migration
+dotnet ef migrations remove --project src/CryptApp.Web
 ```
 
 ## Docker Deployment
@@ -125,11 +124,13 @@ CryptApp/
 
 This project includes Kiro configuration:
 
-- **Steering**: `.kiro/steering/` - Technical, structure, and product guides
-- **Hooks**: `.kiro/hooks/` - Build and test automation
-- **Agents**: `.kiro/agents/` - Migration and feature scaffold agents
+- **Steering** (`.kiro/steering/`): `tech.md`, `structure.md`, `product.md` - always-included guides for stack, layout and UI tone.
+- **Hooks** (`.kiro/hooks/dotnet.json`, format `v1`): after the agent saves code, `build-on-save` runs `dotnet build`; after it edits a test, `test-on-test-save` runs `dotnet test`; `guard-migrations` stops hand-edits of generated migrations.
+- **Custom agents** (`.kiro/agents/*.json`, prompts in `.kiro/prompts/`):
+  - `feature-scaffold` - adds a vertical-slice feature (entity, DTO, service, endpoints, tests) mirroring `Items`;
+  - `migrations` - creates and reviews EF Core migrations, flags data loss.
 
-Open the project in Kiro IDE to take advantage of these features.
+Use them from Kiro CLI, for example `kiro-cli chat --agent-engine v3 --agent feature-scaffold` (workspace agents and `v1` hooks need the V3 engine), or open the folder in Kiro IDE 1.x.
 
 ## Contributing
 

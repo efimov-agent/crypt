@@ -1,0 +1,26 @@
+{
+  "name": "feature-scaffold",
+  "description": "Adds a new vertical-slice feature (entity, service, minimal API, tests) following CryptApp conventions.",
+  "prompt": "file://../prompts/feature-scaffold.md",
+  "tools": [
+    "read",
+    "write",
+    "shell"
+  ],
+  "resources": [
+    "file://.kiro/steering/tech.md",
+    "file://.kiro/steering/structure.md",
+    "file://.kiro/steering/product.md"
+  ],
+  "permissions": {
+    "rules": [
+      {
+        "capability": "fs_read",
+        "match": [
+          "./**"
+        ],
+        "effect": "allow"
+      }
+    ]
+  }
+}

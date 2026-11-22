@@ -1,7 +1,0 @@
-{
-  "trigger": "PostFileSave",
-  "matcher": ".*\\.Tests\\.cs$",
-  "action": "dotnet test --no-build",
-  "workingDirectory": "${workspaceFolder}",
-  "description": "Run tests on test file save"
-}

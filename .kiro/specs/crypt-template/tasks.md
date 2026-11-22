@@ -329,6 +329,8 @@
 
 ---
 
+> Phase 7 revision (K2): hooks consolidated into `.kiro/hooks/dotnet.json` (Kiro hooks format `v1`: build-on-save, test-on-test-save, guard-migrations); agents rewritten as validated Kiro CLI V3 configs `.kiro/agents/{migrations,feature-scaffold}.json` with prompts in `.kiro/prompts/`; `dotnet-ef` pinned in `.config/dotnet-tools.json`.
+
 ### Phase 8: Documentation and README
 
 **[8.1]** Create project README.md  

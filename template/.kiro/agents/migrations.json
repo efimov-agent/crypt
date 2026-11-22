@@ -1,0 +1,25 @@
+{
+  "name": "migrations",
+  "description": "Creates, reviews and applies EF Core migrations for CryptApp safely.",
+  "prompt": "file://../prompts/migrations.md",
+  "tools": [
+    "read",
+    "write",
+    "shell"
+  ],
+  "resources": [
+    "file://.kiro/steering/tech.md",
+    "file://.kiro/steering/structure.md"
+  ],
+  "permissions": {
+    "rules": [
+      {
+        "capability": "fs_read",
+        "match": [
+          "./**"
+        ],
+        "effect": "allow"
+      }
+    ]
+  }
+}
