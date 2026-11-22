@@ -1,0 +1,176 @@
+using System.Globalization;
+using System.Net;
+using System.Net.Http.Json;
+using SeanceScheduler.Tests.Fixtures;
+using SeanceScheduler.Web.Features.Mediums;
+using SeanceScheduler.Web.Features.Seances;
+using Xunit;
+
+namespace SeanceScheduler.Tests.Features;
+
+[Collection("Integration tests")]
+public class ScheduleNewPageTests : IClassFixture<TestDatabaseFixture>
+{
+    private readonly HttpClient _client;
+
+    // The app uses the real clock, so bookings go well into the future (other classes use other days).
+    private static readonly DateTime Day = DateTime.UtcNow.Date.AddDays(40);
+
+    public ScheduleNewPageTests(TestDatabaseFixture fixture)
+    {
+        _client = PageForms.CreateNoRedirectClient(fixture);
+    }
+
+    private static string Local(int hour, int minute = 0) =>
+        Day.AddHours(hour).AddMinutes(minute).ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
+
+    private async Task<int> CreateMediumAsync(bool active = true)
+    {
+        var response = await _client.PostAsJsonAsync("/api/mediums", new { name = $"Medium {Guid.NewGuid():N}" });
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var medium = (await response.Content.ReadFromJsonAsync<MediumDto>())!;
+        if (!active)
+        {
+            (await _client.PostAsync($"/api/mediums/{medium.Id}/deactivate", null)).EnsureSuccessStatusCode();
+        }
+
+        return medium.Id;
+    }
+
+    private Task<HttpResponseMessage> PostBookAsync(string mediumId, string clientName, string startsAt, string endsAt) =>
+        PageForms.PostAsync(_client, "/schedule/new", "BookSeance",
+        [
+            new("Form.MediumId", mediumId),
+            new("Form.ClientName", clientName),
+            new("Form.StartsAt", startsAt),
+            new("Form.EndsAt", endsAt),
+        ]);
+
+    private async Task<List<SeanceDto>> SeancesOfAsync(int mediumId) =>
+        (await _client.GetFromJsonAsync<List<SeanceDto>>($"/api/seances?mediumId={mediumId}"))!;
+
+    [Fact]
+    public async Task Book_Valid_RedirectsWithPrgAndStoresUtcTimes()
+    {
+        var mediumId = await CreateMediumAsync();
+        var client = $"Seeker {Guid.NewGuid():N}";
+
+        var response = await PostBookAsync(mediumId.ToString(CultureInfo.InvariantCulture), client, Local(10), Local(11));
+
+        Assert.Equal(HttpStatusCode.Found, response.StatusCode);
+        Assert.Equal("/schedule?booked=1", response.Headers.Location?.PathAndQuery);
+        var seance = Assert.Single(await SeancesOfAsync(mediumId));
+        Assert.Equal(client, seance.ClientName);
+        Assert.Equal(Day.AddHours(10), seance.StartsAt.ToUniversalTime());
+        Assert.Equal(Day.AddHours(11), seance.EndsAt.ToUniversalTime());
+
+        var html = await _client.GetStringAsync("/schedule?booked=1");
+        Assert.Contains("role=\"status\"", html);
+        Assert.Contains(client, html);
+    }
+
+    [Fact]
+    public async Task Book_Invalid_Returns400WithAriaAndKeepsValues()
+    {
+        var mediumId = await CreateMediumAsync();
+
+        var response = await PostBookAsync(mediumId.ToString(CultureInfo.InvariantCulture), "", "not-a-date", Local(11));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var html = await response.Content.ReadAsStringAsync();
+
+        var client = PageForms.ElementTag(html, "seance-client");
+        Assert.NotNull(client);
+        Assert.Contains("aria-invalid=\"true\"", client);
+        Assert.Contains("aria-describedby=\"seance-clientname-error\"", client);
+        Assert.NotNull(PageForms.ElementTag(html, "seance-clientname-error"));
+
+        var start = PageForms.ElementTag(html, "seance-startsat");
+        Assert.NotNull(start);
+        Assert.Contains("aria-describedby=\"seance-startsat-error\"", start);
+        Assert.Contains("value=\"not-a-date\"", start);
+        Assert.NotNull(PageForms.ElementTag(html, "seance-startsat-error"));
+
+        // A valid field keeps its value and is not marked invalid.
+        var end = PageForms.ElementTag(html, "seance-endsat");
+        Assert.NotNull(end);
+        Assert.Contains($"value=\"{Local(11)}\"", end);
+        Assert.DoesNotContain("aria-invalid", end);
+
+        Assert.Empty(await SeancesOfAsync(mediumId));
+    }
+
+    [Fact]
+    public async Task Book_Overlap_Returns409WithMessageAndKeepsValues()
+    {
+        var mediumId = await CreateMediumAsync();
+        var id = mediumId.ToString(CultureInfo.InvariantCulture);
+        Assert.Equal(HttpStatusCode.Found, (await PostBookAsync(id, "First", Local(12), Local(13))).StatusCode);
+
+        var response = await PostBookAsync(id, "Second", Local(12, 30), Local(13, 30));
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        var html = await response.Content.ReadAsStringAsync();
+        Assert.NotNull(PageForms.ElementTag(html, "seance-form-error"));
+        Assert.Contains("overlaps", html);
+        Assert.Contains("value=\"Second\"", PageForms.ElementTag(html, "seance-client"));
+        Assert.Contains($"value=\"{Local(12, 30)}\"", PageForms.ElementTag(html, "seance-startsat"));
+        Assert.Single(await SeancesOfAsync(mediumId));
+    }
+
+    [Fact]
+    public async Task Book_UnknownMedium_Returns400WithMessage()
+    {
+        await CreateMediumAsync(); // the form only renders while some medium is active
+
+        var response = await PostBookAsync("999999", "Lost soul", Local(14), Local(15));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var html = await response.Content.ReadAsStringAsync();
+        Assert.NotNull(PageForms.ElementTag(html, "seance-form-error"));
+        Assert.Contains("Medium 999999 not found.", html);
+    }
+
+    [Fact]
+    public async Task Book_InactiveMedium_Returns409()
+    {
+        await CreateMediumAsync();
+        var inactive = await CreateMediumAsync(active: false);
+
+        var response = await PostBookAsync(inactive.ToString(CultureInfo.InvariantCulture), "Seeker", Local(15), Local(16));
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Contains("inactive", await response.Content.ReadAsStringAsync());
+        Assert.Empty(await SeancesOfAsync(inactive));
+    }
+
+    [Fact]
+    public async Task Book_WithoutAntiforgeryToken_Returns400AndDoesNotBook()
+    {
+        var mediumId = await CreateMediumAsync();
+
+        var response = await PageForms.PostAsync(_client, "/schedule/new", "BookSeance",
+        [
+            new("Form.MediumId", mediumId.ToString(CultureInfo.InvariantCulture)),
+            new("Form.ClientName", "Forger"),
+            new("Form.StartsAt", Local(17)),
+            new("Form.EndsAt", Local(18)),
+        ], withToken: false);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Empty(await SeancesOfAsync(mediumId));
+    }
+
+    [Fact]
+    public async Task Get_ListsOnlyActiveMediums()
+    {
+        var active = await CreateMediumAsync();
+        var inactive = await CreateMediumAsync(active: false);
+
+        var html = await _client.GetStringAsync("/schedule/new");
+
+        Assert.Contains("<title>Book a Seance · Seance Scheduler</title>", html);
+        Assert.Contains($"<option value=\"{active}\"", html);
+        Assert.DoesNotContain($"<option value=\"{inactive}\"", html);
+    }
+}
