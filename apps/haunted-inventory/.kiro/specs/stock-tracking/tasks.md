@@ -6,7 +6,7 @@ Small, verifiable tasks for implementing the Stock Tracking feature. Each task s
 
 ---
 
-- [ ] 1. Create StockMovement Model
+- [x] 1. Create StockMovement Model
   - Create `src/HauntedInventory.Web/Data/Models/StockMovement.cs` with properties: `Id`, `ItemId`, `Delta`, `Reason`, `Note`, `ResultingQuantity`, `RecordedAt`
   - Add `Item` navigation property to `StockMovement`; add `Movements` collection to `Item`
   - Use `required` keyword for mandatory fields; set `RecordedAt` default to `DateTime.UtcNow`
@@ -16,7 +16,7 @@ Small, verifiable tasks for implementing the Stock Tracking feature. Each task s
 
 ---
 
-- [ ] 2. Create EF Core Migration for Stock Tracking
+- [x] 2. Create EF Core Migration for Stock Tracking
   - Add `Sku` (string, unique, non-null), `Quantity` (int, default 0), `ReorderLevel` (int, default 0) properties to `Item` model
   - Update `ApplicationDbContext.OnModelCreating()`:
     - Set `Sku` as unique index
@@ -31,7 +31,7 @@ Small, verifiable tasks for implementing the Stock Tracking feature. Each task s
 
 ---
 
-- [ ] 3. Implement StockMovementsService
+- [x] 3. Implement StockMovementsService
   - Create `src/HauntedInventory.Web/Features/Items/StockMovementsService.cs`
   - Implement `RecordMovementAsync(int itemId, int delta, string reason, string? note, CancellationToken)`:
     - Validate item exists (throw if not)
@@ -53,7 +53,7 @@ Small, verifiable tasks for implementing the Stock Tracking feature. Each task s
 
 ---
 
-- [ ] 4. Create Request/Response DTOs
+- [x] 4. Create Request/Response DTOs
   - Create `CreateMovementRequest` with properties: `Delta` (int), `Reason` (string), `Note` (string?)
     - Add `Validate()` returning `Dictionary<string, string[]>`; check delta ≠ 0, valid reason, note ≤ 200 chars
   - Create `StockMovementDto`: `Id`, `ItemId`, `Delta`, `Reason`, `Note`, `ResultingQuantity`, `RecordedAt`
@@ -65,7 +65,7 @@ Small, verifiable tasks for implementing the Stock Tracking feature. Each task s
 
 ---
 
-- [ ] 5. Add StockMovements Endpoints
+- [x] 5. Add StockMovements Endpoints
   - Add to `ItemsEndpoints.cs`: `MapPost("/{id:int}/movements", RecordMovement)` and `MapGet("/{id:int}/movements", GetMovements)`
   - Implement `RecordMovement(int id, CreateMovementRequest req, StockMovementsService svc, ILogger<...> log, CancellationToken ct)`:
     - Validate request; return 400 if validation errors
@@ -81,7 +81,7 @@ Small, verifiable tasks for implementing the Stock Tracking feature. Each task s
 
 ---
 
-- [ ] 6. Register StockMovementsService in DI Container
+- [x] 6. Register StockMovementsService in DI Container
   - Update `Program.cs`: add `builder.Services.AddScoped<StockMovementsService>();` before `app.Build()`
   - _Requirements: (DI setup)_
   - Verification: `dotnet run --project src/HauntedInventory.Web` starts without errors

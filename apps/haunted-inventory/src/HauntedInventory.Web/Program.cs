@@ -25,6 +25,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Register feature services
 builder.Services.AddScoped<ItemsService>();
+builder.Services.AddScoped<StockMovementsService>();
 
 var app = builder.Build();
 

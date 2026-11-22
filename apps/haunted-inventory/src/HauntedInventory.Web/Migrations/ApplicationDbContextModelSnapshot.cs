@@ -15,7 +15,7 @@ namespace HauntedInventory.Web.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.0");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.15");
 
             modelBuilder.Entity("HauntedInventory.Web.Data.Models.Item", b =>
                 {
@@ -35,6 +35,17 @@ namespace HauntedInventory.Web.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("Quantity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ReorderLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Sku")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("TEXT");
 
@@ -42,7 +53,65 @@ namespace HauntedInventory.Web.Migrations
 
                     b.HasIndex("Name");
 
-                    b.ToTable("Items");
+                    b.HasIndex("Sku")
+                        .IsUnique();
+
+                    b.ToTable("Items", t =>
+                        {
+                            t.HasCheckConstraint("CK_Items_Quantity", "Quantity >= 0");
+
+                            t.HasCheckConstraint("CK_Items_ReorderLevel", "ReorderLevel >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("HauntedInventory.Web.Data.Models.StockMovement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Delta")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ResultingQuantity")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId", "RecordedAt");
+
+                    b.ToTable("StockMovements");
+                });
+
+            modelBuilder.Entity("HauntedInventory.Web.Data.Models.StockMovement", b =>
+                {
+                    b.HasOne("HauntedInventory.Web.Data.Models.Item", "Item")
+                        .WithMany("Movements")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+                });
+
+            modelBuilder.Entity("HauntedInventory.Web.Data.Models.Item", b =>
+                {
+                    b.Navigation("Movements");
                 });
 #pragma warning restore 612, 618
         }

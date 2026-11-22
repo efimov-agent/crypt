@@ -36,8 +36,8 @@ public class TestDatabaseFixture : WebApplicationFactory<Program>
         if (!db.Items.Any())
         {
             db.Items.AddRange(
-                new Item { Name = "Test Item 1", Description = "A test item" },
-                new Item { Name = "Test Item 2", Description = "Another test item" });
+                new Item { Name = "Test Item 1", Description = "A test item", Sku = "TEST-001", Quantity = 10, ReorderLevel = 5 },
+                new Item { Name = "Test Item 2", Description = "Another test item", Sku = "TEST-002", Quantity = 2, ReorderLevel = 3 });
             db.SaveChanges();
         }
 
