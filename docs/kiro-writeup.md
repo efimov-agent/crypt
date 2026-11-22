@@ -3,10 +3,11 @@
 Crypt was built with **Kiro CLI** (3.5, Linux, headless) on the Kiro Free plan. The whole
 project is spec-driven: one spec for the template itself and one spec per app. Kiro wrote
 the three specs, the first implementation of the template (phases 1–6) and the first pass
-of both app backends. Kiro output was committed as-is and then checked — build, tests,
-code review — with the fixes in separate commits, so the history shows exactly what Kiro
+of both app backends. Kiro's runs were mostly committed as-is and then checked — build,
+tests, code review — with the fixes in separate commits, so the history shows what Kiro
 produced and what had to change (e.g. `2938102` "unreviewed" → `06a280c` fixes,
-`7c922d3` → `e51189e`). The Free plan's credits ran out during the second app, so its
+`7c922d3` → `e51189e`); the haunted-inventory pages (`c780410`) were corrected before
+commit. The Free plan's credits ran out during the second app, so its
 pages, the test suites and the Playwright e2e tests were written without Kiro, following
 the tasks in the spec.
 
@@ -41,7 +42,7 @@ revised ones) that fixed design problems while they were still cheap:
   step that backfills SKUs for existing rows **before** the unique index is created.
 - *seance-booking*: the draft already serialized bookings with `BEGIN IMMEDIATE`, but it
   put a **unique** index on `(MediumId, StartsAt, EndsAt, Status)` "for efficient overlap
-  detection". That index prevents nothing useful and breaks a legal case: book a slot,
+  detection". That index adds nothing over the overlap check and breaks a legal case: book a slot,
   cancel it, book it again, cancel again — two identical `Cancelled` rows violate the key.
   The revision made it a plain non-unique index on `(MediumId, StartsAt)`, switched the
   medium foreign key from cascade delete to `Restrict` (deleting a medium must not erase
@@ -57,8 +58,8 @@ spec doubles as the progress log.
 Every generated app has two hooks:
 
 - **`test-on-stop`** — when the agent finishes a turn, run `dotnet test` once. The output
-  is redirected to **stderr**, the stream Kiro CLI surfaces for hook commands (stdout of a
-  failing build was not shown).
+  is redirected to **stderr**: per the Kiro hook docs, a failing command's stderr is what
+  gets reported, and `dotnet test` writes its errors to stdout.
 - **`guard-migrations`** — stops edits of EF-generated `*.Designer.cs` and the model
   snapshot and tells the agent to use `dotnet ef migrations add`. In Kiro CLI it is a
   `PreToolUse` hook that **blocks** the write; in Kiro IDE it is a `PostFileSave` hook that

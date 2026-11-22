@@ -59,8 +59,8 @@ Spec-driven, with Kiro CLI running headless on a Linux server:
 2. Generated each app with `dotnet new crypt`, wrote an app spec with Kiro
    (`stock-tracking`, `seance-booking`), **reviewed `design.md` like a pull request**, and
    let Kiro implement the backend tasks.
-3. Kiro output was committed as-is, then built, tested and reviewed, with fixes in separate
-   commits. When the Free plan's credits ran out, the remaining tasks of the second app
+3. Kiro's runs were mostly committed as-is, then built, tested and reviewed, with fixes in
+   separate commits (the first app's pages were corrected before commit). When the Free plan's credits ran out, the remaining tasks of the second app
    (pages, tests, Playwright e2e) were finished without Kiro, still following the spec.
 
 Kiro features used: specs, steering, custom agents with file prompts and resources, hooks
@@ -72,12 +72,13 @@ stay within the Free plan's credits. Full writeup: `docs/kiro-writeup.md`.
 - **Hooks that look right but do nothing.** Kiro CLI ignores standalone hook files — hooks
   must live inside the agent config. A `PostToolUse` guard runs after the damage is done and
   its output never reaches the model; the working guard is `PreToolUse` with exit code 2.
-  Test output had to go to stderr to be shown at all.
+  Test output goes to stderr: per the Kiro hook docs that is what gets reported for a failing
+  command, and `dotnet test` writes its errors to stdout.
 - **Concurrency on SQLite.** The first stock design was read-check-write (a lost update
-  under load); the first booking design had a unique index that broke re-booking a
-  cancelled slot. Fixed in the specs: a conditional `UPDATE … WHERE Quantity + delta >= 0`,
-  and a non-unique index with the overlap check inside a `BEGIN IMMEDIATE` transaction —
-  both proven by parallel tests.
+  under load); the first booking design had a unique index that made a re-booked slot
+  impossible to cancel (two identical `Cancelled` rows). Fixed in the specs: a conditional
+  `UPDATE … WHERE Quantity + delta >= 0`, and a non-unique index next to the existing
+  overlap check in a `BEGIN IMMEDIATE` transaction — both proven by parallel tests.
 - **Time zones.** SQLite returns `DateTimeKind.Unspecified`; without explicit UTC
   converters the rules behaved differently on a server in Berlin and one in UTC.
 - **Blazor SSR quirks**, e.g. a static `<title>` silently overriding every `PageTitle`, and
