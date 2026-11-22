@@ -1,3 +1,4 @@
+using SeanceScheduler.Web.Features.Common;
 using SeanceScheduler.Web.Data.Models;
 using SeanceScheduler.Web.Features.Items;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +32,7 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.Name);
             // SQLite has no DateTimeKind: store UTC and read it back as UTC
             entity.Property(e => e.CreatedAt)
-                .HasConversion(v => v.ToUniversalTime(), v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+                .HasConversion(v => UtcTime.Normalize(v), v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
             entity.Property(e => e.UpdatedAt)
                 .HasConversion(v => v.HasValue ? v.Value.ToUniversalTime() : v,
                                v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
@@ -43,7 +44,8 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name)
                 .IsRequired()
-                .HasMaxLength(100);
+                .HasMaxLength(100)
+                .UseCollation("NOCASE"); // ASCII case-insensitive uniqueness, enforced by the database
             entity.Property(e => e.Specialty)
                 .HasMaxLength(200);
             // Unique index on Name (case-insensitive via COLLATE NOCASE in SQLite)
@@ -53,7 +55,7 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.IsActive);
             // UTC conversion for CreatedAt
             entity.Property(e => e.CreatedAt)
-                .HasConversion(v => v.ToUniversalTime(), v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+                .HasConversion(v => UtcTime.Normalize(v), v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
         });
 
         // Configure Seance entity
@@ -79,11 +81,11 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.CreatedAt);
             // UTC conversion for all DateTime properties
             entity.Property(e => e.StartsAt)
-                .HasConversion(v => v.ToUniversalTime(), v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+                .HasConversion(v => UtcTime.Normalize(v), v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
             entity.Property(e => e.EndsAt)
-                .HasConversion(v => v.ToUniversalTime(), v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+                .HasConversion(v => UtcTime.Normalize(v), v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
             entity.Property(e => e.CreatedAt)
-                .HasConversion(v => v.ToUniversalTime(), v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+                .HasConversion(v => UtcTime.Normalize(v), v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
             entity.Property(e => e.CancelledAt)
                 .HasConversion(v => v.HasValue ? v.Value.ToUniversalTime() : v,
                                v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);

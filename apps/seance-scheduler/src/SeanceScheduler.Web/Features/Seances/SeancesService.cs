@@ -2,7 +2,6 @@ using SeanceScheduler.Web.Data;
 using SeanceScheduler.Web.Data.Models;
 using SeanceScheduler.Web.Features.Common;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Data.Sqlite;
 
 namespace SeanceScheduler.Web.Features.Seances;
 
@@ -24,6 +23,9 @@ public class SeancesService
         _logger.LogInformation("Fetching seances at {Time}. Filters: mediumId={MediumId}, from={From}, to={To}",
             DateTime.UtcNow, mediumId, from, to);
 
+        from = UtcTime.Normalize(from);
+        to = UtcTime.Normalize(to);
+
         // Validate query parameters
         if (from.HasValue && to.HasValue && from.Value > to.Value)
         {
@@ -35,7 +37,7 @@ public class SeancesService
         }
 
         var query = _dbContext.Seances
-            .Where(s => s.Status == "Scheduled");
+            .Where(s => s.Status == SeanceStatus.Scheduled);
 
         if (mediumId.HasValue)
         {
@@ -67,82 +69,58 @@ public class SeancesService
         _logger.LogInformation("Booking seance for medium {MediumId} at {Time}", mediumId, DateTime.UtcNow);
 
         // Convert input times to UTC for validation
-        var startsAtUtc = startsAt.ToUniversalTime();
-        var endsAtUtc = endsAt.ToUniversalTime();
+        var startsAtUtc = UtcTime.Normalize(startsAt);
+        var endsAtUtc = UtcTime.Normalize(endsAt);
 
         // Pure input validation runs before the transaction
         ValidateBookingInput(startsAtUtc, endsAtUtc);
 
-        // Use explicit BEGIN IMMEDIATE transaction to prevent race conditions
-        // SQLite's file-level locking ensures only one process can hold the write lock at a time
-        var connection = _dbContext.Database.GetDbConnection();
-        await connection.OpenAsync(cancellationToken);
-        
-        try
+        // Microsoft.Data.Sqlite opens non-deferred transactions with BEGIN IMMEDIATE: the database write lock
+        // is taken before the overlap check, so concurrent bookings (even from other processes sharing the
+        // same DB file) are serialized and exactly one of two overlapping requests can succeed.
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        var medium = await _dbContext.Mediums.AsNoTracking()
+            .FirstOrDefaultAsync(m => m.Id == mediumId, cancellationToken);
+        if (medium is null)
         {
-            using var command = connection.CreateCommand();
-            command.CommandText = "BEGIN IMMEDIATE";
-            await command.ExecuteNonQueryAsync(cancellationToken);
-
-            try
-            {
-                // Fetch medium inside transaction
-                var medium = await _dbContext.Mediums.FindAsync([mediumId], cancellationToken);
-                if (medium == null)
-                {
-                    _logger.LogWarning("Medium {MediumId} not found", mediumId);
-                    throw new NotFoundException($"Medium {mediumId} not found.");
-                }
-
-                if (!medium.IsActive)
-                {
-                    _logger.LogWarning("Medium {MediumId} is inactive", mediumId);
-                    throw new ConflictException("Cannot book a seance with an inactive medium.");
-                }
-
-                // Check for overlaps (only Scheduled seances, half-open interval)
-                var hasOverlap = await _dbContext.Seances
-                    .Where(s => s.MediumId == mediumId && s.Status == "Scheduled")
-                    .AnyAsync(s => s.StartsAt < endsAtUtc && s.EndsAt > startsAtUtc, cancellationToken);
-
-                if (hasOverlap)
-                {
-                    _logger.LogWarning("Seance overlaps with existing booking for medium {MediumId}", mediumId);
-                    throw new ConflictException("Seance overlaps with an existing booking for this medium.");
-                }
-
-                var seance = new Seance
-                {
-                    MediumId = mediumId,
-                    ClientName = clientName.Trim(),
-                    StartsAt = startsAtUtc,
-                    EndsAt = endsAtUtc,
-                    Status = "Scheduled",
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                _dbContext.Seances.Add(seance);
-                await _dbContext.SaveChangesAsync(cancellationToken);
-
-                // Commit the transaction
-                command.CommandText = "COMMIT";
-                await command.ExecuteNonQueryAsync(cancellationToken);
-
-                _logger.LogInformation("Created seance {SeanceId} for medium {MediumId}", seance.Id, mediumId);
-                return new SeanceDto(seance.Id, seance.MediumId, seance.ClientName, seance.StartsAt, seance.EndsAt, seance.Status, seance.CreatedAt, seance.CancelledAt);
-            }
-            catch
-            {
-                // Rollback on any error
-                command.CommandText = "ROLLBACK";
-                await command.ExecuteNonQueryAsync(cancellationToken);
-                throw;
-            }
+            _logger.LogWarning("Medium {MediumId} not found", mediumId);
+            throw new NotFoundException($"Medium {mediumId} not found.");
         }
-        finally
+
+        if (!medium.IsActive)
         {
-            await connection.CloseAsync();
+            _logger.LogWarning("Medium {MediumId} is inactive", mediumId);
+            throw new ConflictException("Cannot book a seance with an inactive medium.");
         }
+
+        // Half-open intervals [StartsAt, EndsAt): back-to-back seances do not overlap.
+        var hasOverlap = await _dbContext.Seances
+            .Where(s => s.MediumId == mediumId && s.Status == SeanceStatus.Scheduled)
+            .AnyAsync(s => s.StartsAt < endsAtUtc && s.EndsAt > startsAtUtc, cancellationToken);
+
+        if (hasOverlap)
+        {
+            _logger.LogWarning("Seance overlaps with existing booking for medium {MediumId}", mediumId);
+            throw new ConflictException("Seance overlaps with an existing booking for this medium.");
+        }
+
+        var seance = new Seance
+        {
+            MediumId = mediumId,
+            ClientName = clientName.Trim(),
+            StartsAt = startsAtUtc,
+            EndsAt = endsAtUtc,
+            Status = SeanceStatus.Scheduled,
+            CreatedAt = _timeProvider.GetUtcNow().UtcDateTime
+        };
+
+        _dbContext.Seances.Add(seance);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        _logger.LogInformation("Created seance {SeanceId} for medium {MediumId}", seance.Id, mediumId);
+        return new SeanceDto(seance.Id, seance.MediumId, seance.ClientName, seance.StartsAt, seance.EndsAt, seance.Status, seance.CreatedAt, seance.CancelledAt);
     }
 
     public async Task<SeanceDto> CancelSeanceAsync(int id, CancellationToken cancellationToken)
@@ -153,9 +131,9 @@ public class SeancesService
 
         // Use ExecuteUpdateAsync for atomic update with WHERE clause
         var rowsAffected = await _dbContext.Seances
-            .Where(s => s.Id == id && s.Status == "Scheduled")
+            .Where(s => s.Id == id && s.Status == SeanceStatus.Scheduled)
             .ExecuteUpdateAsync(setters => setters
-                .SetProperty(s => s.Status, "Cancelled")
+                .SetProperty(s => s.Status, SeanceStatus.Cancelled)
                 .SetProperty(s => s.CancelledAt, now),
                 cancellationToken);
 
@@ -172,7 +150,7 @@ public class SeancesService
                 throw new NotFoundException($"Seance {id} not found.");
             }
 
-            if (seance.Status == "Cancelled")
+            if (seance.Status == SeanceStatus.Cancelled)
             {
                 _logger.LogWarning("Seance {SeanceId} already cancelled", id);
                 throw new ConflictException("Seance has already been cancelled.");
@@ -202,33 +180,33 @@ public class SeancesService
         var duration = (endsAtUtc - startsAtUtc).TotalMinutes;
         if (duration < CreateSeanceRequest.MinDurationMinutes)
         {
-            errors[nameof(endsAtUtc)] = [$"Duration must be at least {CreateSeanceRequest.MinDurationMinutes} minutes."];
+            errors[nameof(Seance.EndsAt)] = [$"Duration must be at least {CreateSeanceRequest.MinDurationMinutes} minutes."];
         }
         else if (duration > CreateSeanceRequest.MaxDurationMinutes)
         {
-            errors[nameof(endsAtUtc)] = [$"Duration must be at most {CreateSeanceRequest.MaxDurationMinutes} minutes."];
+            errors[nameof(Seance.EndsAt)] = [$"Duration must be at most {CreateSeanceRequest.MaxDurationMinutes} minutes."];
         }
         else if (duration % CreateSeanceRequest.DurationIncrementMinutes != 0)
         {
-            errors[nameof(endsAtUtc)] = [$"Duration must be a multiple of {CreateSeanceRequest.DurationIncrementMinutes} minutes."];
+            errors[nameof(Seance.EndsAt)] = [$"Duration must be a multiple of {CreateSeanceRequest.DurationIncrementMinutes} minutes."];
         }
 
         // 15-minute boundary validation
-        if (startsAtUtc.Minute % CreateSeanceRequest.DurationIncrementMinutes != 0)
+        if (!UtcTime.IsOnBoundary(startsAtUtc, CreateSeanceRequest.DurationIncrementMinutes))
         {
-            errors[nameof(startsAtUtc)] = ["Start time must be on a 15-minute boundary (e.g., 14:00, 14:15, 14:30, 14:45)."];
+            errors[nameof(Seance.StartsAt)] = ["Start time must be on a 15-minute boundary (e.g., 14:00, 14:15, 14:30, 14:45)."];
         }
 
         // Future start time validation
         if (startsAtUtc <= now)
         {
-            errors[nameof(startsAtUtc)] = ["Start time must be in the future."];
+            errors[nameof(Seance.StartsAt)] = ["Start time must be in the future."];
         }
 
         // Future end time validation
         if (endsAtUtc <= now)
         {
-            errors[nameof(endsAtUtc)] = ["End time must be in the future."];
+            errors[nameof(Seance.EndsAt)] = ["End time must be in the future."];
         }
 
         if (errors.Count > 0)

@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using SeanceScheduler.Web.Data;
 using SeanceScheduler.Web.Data.Models;
 using SeanceScheduler.Web.Features.Common;
@@ -49,7 +50,7 @@ public class MediumsService
 
         // Check for duplicate name (case-insensitive)
         var existingMedium = await _dbContext.Mediums
-            .FirstOrDefaultAsync(m => m.Name.ToLower() == trimmedName.ToLower(), cancellationToken);
+            .FirstOrDefaultAsync(m => m.Name == trimmedName, cancellationToken);
 
         if (existingMedium != null)
         {
@@ -66,7 +67,16 @@ public class MediumsService
         };
 
         _dbContext.Mediums.Add(medium);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is SqliteException { SqliteExtendedErrorCode: 2067 })
+        {
+            // SQLITE_CONSTRAINT_UNIQUE: a concurrent request inserted the same name after our check.
+            _logger.LogWarning("Medium with name {Name} already exists (unique index)", trimmedName);
+            throw new ConflictException($"A medium with the name '{trimmedName}' already exists.");
+        }
 
         _logger.LogInformation("Created medium {MediumId} - {MediumName}", medium.Id, medium.Name);
         return new MediumDto(medium.Id, medium.Name, medium.Specialty, medium.IsActive, medium.CreatedAt);

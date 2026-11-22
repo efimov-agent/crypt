@@ -15,7 +15,7 @@ public class Seance
 
     public DateTime EndsAt { get; set; }
 
-    public string Status { get; set; } = "Scheduled";
+    public string Status { get; set; } = SeanceStatus.Scheduled;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

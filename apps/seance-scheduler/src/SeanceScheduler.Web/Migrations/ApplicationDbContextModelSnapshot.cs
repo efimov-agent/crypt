@@ -60,7 +60,8 @@ namespace SeanceScheduler.Web.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
 
                     b.Property<string>("Specialty")
                         .HasMaxLength(200)

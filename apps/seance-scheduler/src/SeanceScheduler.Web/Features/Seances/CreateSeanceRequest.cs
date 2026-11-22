@@ -51,11 +51,11 @@ public sealed record CreateSeanceRequest(int MediumId, string? ClientName, DateT
             }
             else if (duration % DurationIncrementMinutes != 0)
             {
-                errors[nameof(StartsAt)] = [$"Duration must be a multiple of {DurationIncrementMinutes} minutes."];
+                errors[nameof(EndsAt)] = [$"Duration must be a multiple of {DurationIncrementMinutes} minutes."];
             }
 
             // Check 15-minute boundary for StartsAt
-            if (StartsAt.Minute % DurationIncrementMinutes != 0)
+            if (!Common.UtcTime.IsOnBoundary(StartsAt, DurationIncrementMinutes))
             {
                 errors[nameof(StartsAt)] = ["Start time must be on a 15-minute boundary (e.g., 14:00, 14:15, 14:30, 14:45)."];
             }
