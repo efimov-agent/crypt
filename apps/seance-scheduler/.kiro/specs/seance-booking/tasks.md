@@ -58,15 +58,15 @@
     - [x] 7.4.1 Validate duration 30..240 minutes and multiple of 15
     - [x] 7.4.2 Validate StartsAt on 15-minute boundary (minutes ∈ {0, 15, 30, 45})
     - [x] 7.4.3 Validate StartsAt in future (relative to TimeProvider.GetUtcNow())
-    - [ ] 7.4.4 Validate EndsAt in future
-    - [ ] 7.4.5 Fetch medium; throw NotFoundException if not found
-    - [ ] 7.4.6 Throw ConflictException if medium IsActive=false
-    - [ ] 7.4.7 Check overlap within BEGIN IMMEDIATE transaction (see 7.4.9)
-    - [ ] 7.4.8 Use half-open interval logic: overlap if (s.StartsAt < endsAt && s.EndsAt > startsAt); back-to-back is allowed
-    - [ ] 7.4.9 Open the transaction with `Database.BeginTransactionAsync()` (Microsoft.Data.Sqlite issues BEGIN IMMEDIATE) BEFORE the medium lookup (7.4.5/7.4.6) so deactivation cannot race the booking; pure input validation (7.4.1–7.4.4) runs before the transaction; check only Scheduled seances, create Seance with Status="Scheduled" and UTC CreatedAt
-    - [ ] 7.4.10 Return created Seance
-  - [ ] 7.5 Implement `CancelSeanceAsync(int, CancellationToken)` atomically: `ExecuteUpdateAsync` with `WHERE Id = id AND Status = Scheduled` setting Status=Cancelled and CancelledAt=TimeProvider UTC now; if 0 rows affected → 404 when the seance does not exist, otherwise 409 (already cancelled); then read the seance with AsNoTracking and return it (never return a stale tracked entity)
-  - [ ] 7.6 Add logging for all operations
+    - [x] 7.4.4 Validate EndsAt in future
+    - [x] 7.4.5 Fetch medium; throw NotFoundException if not found
+    - [x] 7.4.6 Throw ConflictException if medium IsActive=false
+    - [x] 7.4.7 Check overlap within BEGIN IMMEDIATE transaction (see 7.4.9)
+    - [x] 7.4.8 Use half-open interval logic: overlap if (s.StartsAt < endsAt && s.EndsAt > startsAt); back-to-back is allowed
+    - [x] 7.4.9 Open the transaction with `Database.BeginTransactionAsync()` (Microsoft.Data.Sqlite issues BEGIN IMMEDIATE) BEFORE the medium lookup (7.4.5/7.4.6) so deactivation cannot race the booking; pure input validation (7.4.1–7.4.4) runs before the transaction; check only Scheduled seances, create Seance with Status="Scheduled" and UTC CreatedAt
+    - [x] 7.4.10 Return created Seance
+  - [x] 7.5 Implement `CancelSeanceAsync(int, CancellationToken)` atomically: `ExecuteUpdateAsync` with `WHERE Id = id AND Status = Scheduled` setting Status=Cancelled and CancelledAt=TimeProvider UTC now; if 0 rows affected → 404 when the seance does not exist, otherwise 409 (already cancelled); then read the seance with AsNoTracking and return it (never return a stale tracked entity)
+  - [x] 7.6 Add logging for all operations
   - _Requirements: 2.0, 2.1, 2.2, 2.3, 2.4, Concurrency_
 
 ## Phase 3: DTOs & Request Validation
