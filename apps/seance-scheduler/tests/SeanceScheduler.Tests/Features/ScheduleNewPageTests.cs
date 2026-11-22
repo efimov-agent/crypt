@@ -118,7 +118,7 @@ public class ScheduleNewPageTests : IClassFixture<TestDatabaseFixture>
     }
 
     [Fact]
-    public async Task Book_PastStart_Returns400FromServiceRules()
+    public async Task Book_PastStart_Returns400FromSlotRules()
     {
         var mediumId = await CreateMediumAsync();
         var yesterday = DateTime.UtcNow.Date.AddDays(-1);
