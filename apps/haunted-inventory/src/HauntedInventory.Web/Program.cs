@@ -43,9 +43,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Unknown non-API routes get the HTML not-found page; API 404s keep their own (JSON or empty) body.
+// Unknown non-API pages (GET only) get the HTML not-found page; API 404s keep their own (JSON or empty) body,
+// and other methods are not re-executed (a re-executed POST would hit antiforgery instead of returning 404).
 app.UseWhen(
-    context => !context.Request.Path.StartsWithSegments("/api"),
+    context => HttpMethods.IsGet(context.Request.Method) && !context.Request.Path.StartsWithSegments("/api"),
     branch => branch.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true));
 
 app.UseStaticFiles();

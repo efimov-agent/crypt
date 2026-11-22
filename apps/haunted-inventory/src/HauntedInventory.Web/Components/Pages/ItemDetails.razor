@@ -7,13 +7,13 @@
 
 <h1>Item Details</h1>
 
-@if (_notFound)
+@* When _notFound is set, NavigationManager.NotFound() renders the router's NotFoundPage instead. *@
+@if (_item is null)
 {
-    @* NavigationManager.NotFound() renders the router's NotFoundPage instead. *@
-}
-else if (_item == null)
-{
-    <p class="loading">Loading...</p>
+    if (!_notFound)
+    {
+        <p class="loading">Loading...</p>
+    }
 }
 else
 {
@@ -196,6 +196,7 @@ else
         }
         catch (KeyNotFoundException)
         {
+            // Race only: the item was deleted between page load and submit (unknown ids never render the form).
             _notFound = true;
             NavigationManager.NotFound();
             return;

@@ -93,6 +93,14 @@ public class BlazorPagesTests : IClassFixture<TestDatabaseFixture>
     }
 
     [Fact]
+    public async Task PostToUnknownRoute_Returns404NotAntiforgery400()
+    {
+        var response = await _client.PostAsync("/no-such-crypt", new FormUrlEncodedContent([new("a", "1")]));
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
     public async Task UnknownRoute_Returns404WithNotFoundPage()
     {
         var response = await _client.GetAsync("/no-such-crypt");
