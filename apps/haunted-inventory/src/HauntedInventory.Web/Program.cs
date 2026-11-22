@@ -1,4 +1,5 @@
 using HauntedInventory.Web.Data;
+using HauntedInventory.Web.Features.Common;
 using HauntedInventory.Web.Features.Items;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<ItemsService>();
 builder.Services.AddScoped<StockMovementsService>();
 
+// Optional per-IP limit for writes (public demo deployments set WriteRateLimit__PermitLimit)
+builder.Services.AddWriteRateLimiting(builder.Configuration);
+
 var app = builder.Build();
 
 // Apply pending migrations on startup
@@ -52,6 +56,7 @@ app.UseWhen(
 app.UseStaticFiles();
 // Explicit routing after status code pages so the re-executed /not-found request is routed again.
 app.UseRouting();
+app.UseRateLimiter();
 app.UseAntiforgery();
 
 // Map API endpoints

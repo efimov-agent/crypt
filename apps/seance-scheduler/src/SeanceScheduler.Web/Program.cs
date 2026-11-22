@@ -33,6 +33,9 @@ builder.Services.AddScoped<ItemsService>();
 builder.Services.AddScoped<MediumsService>();
 builder.Services.AddScoped<SeancesService>();
 
+// Optional per-IP limit for writes (public demo deployments set WriteRateLimit__PermitLimit)
+builder.Services.AddWriteRateLimiting(builder.Configuration);
+
 // Register TimeProvider
 builder.Services.AddSingleton(TimeProvider.System);
 
@@ -85,6 +88,7 @@ app.UseWhen(
 app.UseStaticFiles();
 // Explicit routing after status code pages so the re-executed /not-found request is routed again.
 app.UseRouting();
+app.UseRateLimiter();
 app.UseAntiforgery();
 
 // Map API endpoints
