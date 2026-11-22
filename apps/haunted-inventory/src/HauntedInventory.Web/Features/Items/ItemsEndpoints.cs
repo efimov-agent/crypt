@@ -151,7 +151,7 @@ public static class ItemsEndpoints
             logger.LogWarning("Item {Id} not found for movement", id);
             return Results.NotFound(new { message = $"Item {id} not found" });
         }
-        catch (InvalidOperationException ex)
+        catch (InsufficientStockException ex)
         {
             logger.LogWarning(ex, "Movement would result in invalid quantity for item {ItemId}", id);
             return Results.Conflict(new ProblemDetails
@@ -181,11 +181,15 @@ public static class ItemsEndpoints
 
         try
         {
-            var movements = await service.GetMovementsAsync(id, reasonFilter, limit, offset, cancellationToken);
-            var dtos = movements.Select(StockMovementDto.FromEntity).ToList();
+            var page = await service.GetMovementsAsync(id, reasonFilter, limit, offset, cancellationToken);
+            var dtos = page.Movements.Select(StockMovementDto.FromEntity).ToList();
 
             logger.LogInformation("Returning {Count} movements for item {ItemId}", dtos.Count, id);
-            return Results.Ok(new GetMovementsResponse(dtos, dtos.Count, limit, offset));
+            return Results.Ok(new GetMovementsResponse(dtos, page.Total, page.Limit, page.Offset));
+        }
+        catch (ArgumentException ex)
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]> { ["reason"] = [ex.Message] });
         }
         catch (KeyNotFoundException)
         {

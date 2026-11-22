@@ -126,7 +126,7 @@ This project includes Kiro configuration:
 - **Steering** (`.kiro/steering/`): `tech.md`, `structure.md`, `product.md` - always-included guides for stack, layout and UI tone.
 - **Hooks** - the same two hooks in two formats:
   - `test-on-stop` - when the agent finishes a turn, runs `dotnet test` once (builds and tests; output goes to stderr so failures reach the agent; can take ~30-60 s);
-  - `guard-migrations` - stops hand edits of generated files under `Migrations/` and points the agent to `dotnet ef migrations add`.
+  - `guard-migrations` - stops hand edits of EF-generated `Migrations/*.Designer.cs` and the model snapshot and points the agent to `dotnet ef migrations add`; editing `Up`/`Down` of a new migration (e.g. a data backfill with `migrationBuilder.Sql`) stays allowed.
   - Kiro IDE reads `.kiro/hooks/dotnet.json` (standalone hooks, format `v1`; set `"enabled": false` to turn one off).
   - Kiro CLI runs hooks declared inside the agent config, so both custom agents carry them in their `"hooks"` array: `Stop` for tests and `PreToolUse` on `fs_write|fs_append|str_replace` calling `.kiro/hooks/guard-migrations.sh`, which blocks the write with exit code 2 (checked with kiro-cli 3.5).
 - **Custom agents** (`.kiro/agents/*.json`, prompts in `.kiro/prompts/`):

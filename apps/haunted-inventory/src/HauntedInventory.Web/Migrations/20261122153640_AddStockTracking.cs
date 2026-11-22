@@ -34,7 +34,7 @@ namespace HauntedInventory.Web.Migrations
                 defaultValue: "");
 
             // Backfill existing items with Sku = 'ITEM-' || Id before creating unique index
-            migrationBuilder.Sql("UPDATE Items SET Sku = 'ITEM-' || Id WHERE Sku = '' OR Sku IS NULL");
+            migrationBuilder.Sql("UPDATE Items SET Sku = 'ITEM-' || Id WHERE Sku = '' OR Sku IS NULL;");
 
             migrationBuilder.CreateTable(
                 name: "StockMovements",

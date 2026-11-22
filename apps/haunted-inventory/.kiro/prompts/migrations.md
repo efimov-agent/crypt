@@ -12,6 +12,6 @@ Workflow for a schema change:
 4. `dotnet test HauntedInventory.slnx` — tests apply all migrations to a fresh database.
 
 Rules:
-- Never edit generated migration or snapshot files by hand; to undo the last unapplied migration use `dotnet ef migrations remove --project src/HauntedInventory.Web`.
+- Never edit `*.Designer.cs` or the model snapshot by hand (a hook blocks it). You may add custom SQL such as a data backfill (`migrationBuilder.Sql(...)`) to `Up`/`Down` of a migration that has not been applied or shared yet. To undo the last unapplied migration use `dotnet ef migrations remove --project src/HauntedInventory.Web`.
 - Never run `dotnet ef database drop` or delete `App_Data` without explicit confirmation.
 - Migration names describe the change (`AddCustomerEmail`), never `Migration1`.

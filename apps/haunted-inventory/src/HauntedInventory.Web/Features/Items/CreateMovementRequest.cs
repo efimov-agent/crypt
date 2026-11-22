@@ -17,6 +17,10 @@ public sealed record CreateMovementRequest(int? Delta, string? Reason, string? N
         {
             errors[nameof(Delta)] = ["Delta must be non-zero."];
         }
+        else if (Math.Abs((long)Delta.Value) > StockMovementsService.MaxAbsDelta)
+        {
+            errors[nameof(Delta)] = [$"Delta must be between -{StockMovementsService.MaxAbsDelta} and {StockMovementsService.MaxAbsDelta}."];
+        }
 
         if (string.IsNullOrWhiteSpace(Reason))
         {

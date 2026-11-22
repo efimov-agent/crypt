@@ -11,6 +11,7 @@ public class StockMovementsService
 
     public static readonly string[] ValidReasons = ["Received", "Sold", "Damaged", "Adjustment"];
     public const int NoteMaxLength = 200;
+    public const int MaxAbsDelta = 1_000_000;
 
     public StockMovementsService(ApplicationDbContext dbContext, ILogger<StockMovementsService> logger)
     {
@@ -32,6 +33,11 @@ public class StockMovementsService
             throw new ArgumentException("Delta must be non-zero.", nameof(delta));
         }
 
+        if (Math.Abs((long)delta) > MaxAbsDelta)
+        {
+            throw new ArgumentException($"Delta must be between -{MaxAbsDelta} and {MaxAbsDelta}.", nameof(delta));
+        }
+
         // Validate reason is valid
         if (!ValidReasons.Contains(reason))
         {
@@ -49,122 +55,113 @@ public class StockMovementsService
         // Use a transaction for atomic update
         using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        try
+        // Disposing the transaction without Commit rolls it back (also on cancellation or errors).
+        // Atomic update with compound WHERE clause to prevent negative quantity
+        var rowsAffected = await _dbContext.Items
+            .Where(i => i.Id == itemId && i.Quantity + delta >= 0)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(i => i.Quantity, i => i.Quantity + delta)
+                .SetProperty(i => i.UpdatedAt, DateTime.UtcNow),
+                cancellationToken);
+
+        if (rowsAffected == 0)
         {
-            // Atomic update with compound WHERE clause to prevent negative quantity
-            var rowsAffected = await _dbContext.Items
-                .Where(i => i.Id == itemId && i.Quantity + delta >= 0)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(i => i.Quantity, i => i.Quantity + delta)
-                    .SetProperty(i => i.UpdatedAt, DateTime.UtcNow),
-                    cancellationToken);
-
-            if (rowsAffected == 0)
+            // Check if item exists to distinguish between not found vs insufficient stock
+            // Query the database directly: ExecuteUpdate bypasses the change tracker,
+            // so an Item already tracked in this scope would hold a stale Quantity.
+            var item = await _dbContext.Items.AsNoTracking()
+                .Where(i => i.Id == itemId)
+                .Select(i => new { i.Quantity })
+                .FirstOrDefaultAsync(cancellationToken);
+            if (item == null)
             {
-                // Check if item exists to distinguish between not found vs insufficient stock
-                // Query the database directly: ExecuteUpdate bypasses the change tracker,
-                // so an Item already tracked in this scope would hold a stale Quantity.
-                var item = await _dbContext.Items.AsNoTracking()
-                    .Where(i => i.Id == itemId)
-                    .Select(i => new { i.Quantity })
-                    .FirstOrDefaultAsync(cancellationToken);
-                if (item == null)
-                {
-                    throw new KeyNotFoundException($"Item {itemId} not found.");
-                }
-
-                // Item exists but quantity constraint failed
-                _logger.LogWarning("Movement would result in negative quantity for item {ItemId}. Current: {Current}, Delta: {Delta}",
-                    itemId, item.Quantity, delta);
-                throw new InvalidOperationException(
-                    $"Stock movement would result in negative quantity. Current: {item.Quantity}, Delta: {delta}");
+                throw new KeyNotFoundException($"Item {itemId} not found.");
             }
 
-            // Read the new quantity from the database (not the change tracker, see above)
-            var resultingQuantity = await _dbContext.Items.AsNoTracking()
-                .Where(i => i.Id == itemId)
-                .Select(i => i.Quantity)
-                .SingleAsync(cancellationToken);
-
-            // Create movement record with resulting quantity
-            var movement = new StockMovement
-            {
-                ItemId = itemId,
-                Delta = delta,
-                Reason = reason,
-                Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim(),
-                ResultingQuantity = resultingQuantity,
-                RecordedAt = DateTime.UtcNow
-            };
-
-            _dbContext.StockMovements.Add(movement);
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-
-            _logger.LogInformation("Recorded movement for item {ItemId}: Delta={Delta}, Reason={Reason}, ResultingQuantity={ResultingQuantity}",
-                itemId, delta, reason, movement.ResultingQuantity);
-
-            return movement;
+            // Item exists but quantity constraint failed
+            _logger.LogWarning("Movement would result in negative quantity for item {ItemId}. Current: {Current}, Delta: {Delta}",
+                itemId, item.Quantity, delta);
+            throw new InsufficientStockException(
+                $"Stock movement would result in negative quantity. Current: {item.Quantity}, Delta: {delta}");
         }
-        catch
+
+        // Read the new quantity from the database (not the change tracker, see above)
+        var resultingQuantity = await _dbContext.Items.AsNoTracking()
+            .Where(i => i.Id == itemId)
+            .Select(i => i.Quantity)
+            .SingleAsync(cancellationToken);
+
+        // Create movement record with resulting quantity
+        var movement = new StockMovement
         {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
-        }
+            ItemId = itemId,
+            Delta = delta,
+            Reason = reason,
+            Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim(),
+            ResultingQuantity = resultingQuantity,
+            RecordedAt = DateTime.UtcNow
+        };
+
+        _dbContext.StockMovements.Add(movement);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        _logger.LogInformation("Recorded movement for item {ItemId}: Delta={Delta}, Reason={Reason}, ResultingQuantity={ResultingQuantity}",
+            itemId, delta, reason, movement.ResultingQuantity);
+
+        return movement;
     }
 
-    public async Task<IReadOnlyList<StockMovement>> GetMovementsAsync(
+    public const int DefaultPageSize = 100;
+    public const int MaxPageSize = 1000;
+
+    /// <summary>
+    /// Returns one page of an item's movement history, newest first (ties broken by Id),
+    /// together with the total number of matching movements and the limit/offset actually applied.
+    /// </summary>
+    /// <exception cref="KeyNotFoundException">The item does not exist.</exception>
+    /// <exception cref="ArgumentException">The reason filter contains an unknown reason.</exception>
+    public async Task<MovementPage> GetMovementsAsync(
         int itemId,
         string[]? reasonFilter = null,
-        int limit = 100,
+        int limit = DefaultPageSize,
         int offset = 0,
         CancellationToken cancellationToken = default)
     {
-        // Validate limit
-        if (limit > 1000)
+        limit = limit < 1 ? DefaultPageSize : Math.Min(limit, MaxPageSize);
+        offset = Math.Max(offset, 0);
+
+        if (reasonFilter is { Length: > 0 })
         {
-            limit = 1000;
-        }
-        else if (limit < 1)
-        {
-            limit = 100;
+            var unknown = reasonFilter.Where(r => !ValidReasons.Contains(r)).ToArray();
+            if (unknown.Length > 0)
+            {
+                throw new ArgumentException(
+                    $"Unknown reason(s): {string.Join(", ", unknown)}. Allowed: {string.Join(", ", ValidReasons)}", nameof(reasonFilter));
+            }
         }
 
-        // Validate offset
-        if (offset < 0)
-        {
-            offset = 0;
-        }
-
-        // Check if item exists
-        var item = await _dbContext.Items.FindAsync([itemId], cancellationToken);
-        if (item == null)
+        if (!await _dbContext.Items.AnyAsync(i => i.Id == itemId, cancellationToken))
         {
             throw new KeyNotFoundException($"Item {itemId} not found.");
         }
 
-        var query = _dbContext.StockMovements
-            .Where(m => m.ItemId == itemId)
-            .AsQueryable();
-
-        // Apply reason filter if provided
-        if (reasonFilter != null && reasonFilter.Length > 0)
+        var query = _dbContext.StockMovements.AsNoTracking().Where(m => m.ItemId == itemId);
+        if (reasonFilter is { Length: > 0 })
         {
-            var validFilters = reasonFilter.Where(r => ValidReasons.Contains(r)).ToArray();
-            if (validFilters.Length > 0)
-            {
-                query = query.Where(m => validFilters.Contains(m.Reason));
-            }
+            query = query.Where(m => reasonFilter.Contains(m.Reason));
         }
 
+        var total = await query.CountAsync(cancellationToken);
         var movements = await query
             .OrderByDescending(m => m.RecordedAt)
+            .ThenByDescending(m => m.Id)
             .Skip(offset)
             .Take(limit)
             .ToListAsync(cancellationToken);
 
-        _logger.LogInformation("Retrieved {Count} movements for item {ItemId}", movements.Count, itemId);
-        return movements;
+        _logger.LogInformation("Retrieved {Count} of {Total} movements for item {ItemId}", movements.Count, total, itemId);
+        return new MovementPage(movements, total, limit, offset);
     }
 
     public async Task<IReadOnlyList<Item>> GetLowStockItemsAsync(CancellationToken cancellationToken)
@@ -178,3 +175,9 @@ public class StockMovementsService
         return items;
     }
 }
+
+/// <summary>One page of movement history plus paging metadata.</summary>
+public sealed record MovementPage(IReadOnlyList<StockMovement> Movements, int Total, int Limit, int Offset);
+
+/// <summary>Thrown when a movement would drive an item's quantity below zero.</summary>
+public sealed class InsufficientStockException(string message) : Exception(message);

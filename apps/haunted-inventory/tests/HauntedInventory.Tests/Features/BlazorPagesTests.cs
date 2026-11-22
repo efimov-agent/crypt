@@ -54,6 +54,7 @@ public class BlazorPagesTests : IClassFixture<TestDatabaseFixture>
         var content = await response.Content.ReadAsStringAsync();
         // Test Item 2 has Quantity=2, ReorderLevel=3 so it's low stock
         Assert.Contains("TEST-002", content);
+        Assert.DoesNotContain("TEST-001", content); // 10 in stock, reorder level 5
     }
 
     #endregion

@@ -137,99 +137,118 @@ public class StockMovementsTests : IClassFixture<TestDatabaseFixture>
     }
 
     [Fact]
-    public async Task GetMovements_Ordering_ReturnsDescendingByRecordedAt()
+    public async Task GetMovements_Ordering_ReturnsNewestFirst()
     {
-        // Arrange: Create an item and record multiple movements
-        var createResponse = await _client.PostAsJsonAsync("/api/items", new
-        {
-            name = "Ordering Test",
-            sku = "ORDER-001",
-            reorderLevel = 0
-        });
-        var item = await createResponse.Content.ReadFromJsonAsync<ItemDto>();
-        Assert.NotNull(item);
+        var item = await CreateItemAsync("ORDER-001");
+        await RecordAsync(item.Id, 1, "Received");
+        await RecordAsync(item.Id, 1, "Received");
+        await RecordAsync(item.Id, 1, "Received");
 
-        // Record movements with slight delay to ensure different timestamps
-        await _client.PostAsJsonAsync($"/api/items/{item.Id}/movements", new { delta = 1, reason = "Received" });
-        await Task.Delay(10);
-        await _client.PostAsJsonAsync($"/api/items/{item.Id}/movements", new { delta = 1, reason = "Received" });
-        await Task.Delay(10);
-        await _client.PostAsJsonAsync($"/api/items/{item.Id}/movements", new { delta = 1, reason = "Received" });
+        var result = await _client.GetFromJsonAsync<GetMovementsResponse>($"/api/items/{item.Id}/movements");
 
-        // Act
-        var response = await _client.GetAsync($"/api/items/{item.Id}/movements");
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        var result = await response.Content.ReadFromJsonAsync<GetMovementsResponse>();
         Assert.NotNull(result);
-        Assert.Equal(3, result.Movements.Count);
-
-        // Assert: Ordered descending (newest first)
-        for (int i = 0; i < result.Movements.Count - 1; i++)
-        {
-            Assert.True(result.Movements[i].RecordedAt >= result.Movements[i + 1].RecordedAt);
-        }
+        Assert.Equal([3, 2, 1], result.Movements.Select(m => m.ResultingQuantity));
     }
 
     [Fact]
-    public async Task GetMovements_ReasonFiltering_FiltersCorrectly()
+    public async Task GetMovements_ReasonFiltering_SingleAndMultipleReasons()
     {
-        // Arrange: Create an item and record movements with different reasons
-        var createResponse = await _client.PostAsJsonAsync("/api/items", new
-        {
-            name = "Filter Test",
-            sku = "FILTER-001",
-            reorderLevel = 0
-        });
-        var item = await createResponse.Content.ReadFromJsonAsync<ItemDto>();
-        Assert.NotNull(item);
+        var item = await CreateItemAsync("FILTER-001");
+        await RecordAsync(item.Id, 5, "Received");     // qty 5
+        await RecordAsync(item.Id, -1, "Sold");        // qty 4
+        await RecordAsync(item.Id, -1, "Damaged");     // qty 3
+        await RecordAsync(item.Id, 2, "Adjustment");   // qty 5
+        await RecordAsync(item.Id, -2, "Sold");        // qty 3
 
-        // Add some initial stock
-        await _client.PostAsJsonAsync($"/api/items/{item.Id}/movements", new { delta = 5, reason = "Received" });
+        var sold = await _client.GetFromJsonAsync<GetMovementsResponse>($"/api/items/{item.Id}/movements?reason=Sold");
+        Assert.NotNull(sold);
+        Assert.Equal([3, 4], sold.Movements.Select(m => m.ResultingQuantity));
+        Assert.Equal(2, sold.Total);
 
-        // Record movements with different reasons
-        await _client.PostAsJsonAsync($"/api/items/{item.Id}/movements", new { delta = 1, reason = "Received" });
-        await _client.PostAsJsonAsync($"/api/items/{item.Id}/movements", new { delta = -1, reason = "Sold" });
-        await _client.PostAsJsonAsync($"/api/items/{item.Id}/movements", new { delta = -1, reason = "Sold" });
-
-        // Act: Filter by "Sold"
-        var response = await _client.GetAsync($"/api/items/{item.Id}/movements?reason=Sold");
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        var result = await response.Content.ReadFromJsonAsync<GetMovementsResponse>();
-        Assert.NotNull(result);
-        Assert.Equal(2, result.Movements.Count);
-        Assert.All(result.Movements, m => Assert.Equal("Sold", m.Reason));
+        var soldOrDamaged = await _client.GetFromJsonAsync<GetMovementsResponse>($"/api/items/{item.Id}/movements?reason=Sold,Damaged");
+        Assert.NotNull(soldOrDamaged);
+        Assert.Equal(["Sold", "Damaged", "Sold"], soldOrDamaged.Movements.Select(m => m.Reason));
+        Assert.Equal(3, soldOrDamaged.Total);
     }
 
     [Fact]
-    public async Task GetMovements_Pagination_LimitOffset_WorksCorrectly()
+    public async Task GetMovements_UnknownReasonFilter_Returns400()
     {
-        // Arrange: Create an item and record 5 movements
-        var createResponse = await _client.PostAsJsonAsync("/api/items", new
-        {
-            name = "Pagination Test",
-            sku = "PAGE-001",
-            reorderLevel = 0
-        });
-        var item = await createResponse.Content.ReadFromJsonAsync<ItemDto>();
-        Assert.NotNull(item);
+        var item = await CreateItemAsync("FILTER-002");
+        await RecordAsync(item.Id, 5, "Received");
 
-        // Record 5 movements
-        for (int i = 0; i < 5; i++)
+        var response = await _client.GetAsync($"/api/items/{item.Id}/movements?reason=Sodl");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetMovements_Pagination_ReturnsRequestedSliceAndTotal()
+    {
+        var item = await CreateItemAsync("PAGE-001");
+        for (var i = 0; i < 150; i++)
         {
-            await _client.PostAsJsonAsync($"/api/items/{item.Id}/movements", new { delta = 1, reason = "Received" });
+            await RecordAsync(item.Id, 1, "Received"); // ResultingQuantity 1..150
         }
 
-        // Act: Get with limit=2, offset=1
-        var response = await _client.GetAsync($"/api/items/{item.Id}/movements?limit=2&offset=1");
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var page = await _client.GetFromJsonAsync<GetMovementsResponse>($"/api/items/{item.Id}/movements?limit=50&offset=100");
 
-        var result = await response.Content.ReadFromJsonAsync<GetMovementsResponse>();
-        Assert.NotNull(result);
-        Assert.Equal(2, result.Movements.Count);
-        Assert.Equal(2, result.Limit);
-        Assert.Equal(1, result.Offset);
+        Assert.NotNull(page);
+        Assert.Equal(Enumerable.Range(1, 50).Reverse(), page.Movements.Select(m => m.ResultingQuantity));
+        Assert.Equal(150, page.Total);
+        Assert.Equal(50, page.Limit);
+        Assert.Equal(100, page.Offset);
+    }
+
+    [Fact]
+    public async Task GetMovements_LimitAboveMaximum_IsClampedAndReported()
+    {
+        var item = await CreateItemAsync("PAGE-002");
+        await RecordAsync(item.Id, 1, "Received");
+
+        var page = await _client.GetFromJsonAsync<GetMovementsResponse>($"/api/items/{item.Id}/movements?limit=5000");
+
+        Assert.NotNull(page);
+        Assert.Equal(StockMovementsService.MaxPageSize, page.Limit);
+        Assert.Single(page.Movements);
+    }
+
+    [Fact]
+    public async Task PostMovement_DeltaOutOfRange_Returns400()
+    {
+        var item = await CreateItemAsync("BIG-001");
+
+        var response = await _client.PostAsJsonAsync($"/api/items/{item.Id}/movements",
+            new { delta = int.MaxValue, reason = "Received" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetItems_LowStockFilter_ReturnsOnlyItemsAtOrBelowReorderLevel()
+    {
+        // Seeded: TEST-001 (10 / reorder 5) is not low; TEST-002 (2 / reorder 3) is low.
+        var items = await _client.GetFromJsonAsync<List<ItemDto>>("/api/items?lowStock=true");
+
+        Assert.NotNull(items);
+        Assert.Contains(items, i => i.Sku == "TEST-002");
+        Assert.DoesNotContain(items, i => i.Sku == "TEST-001");
+        Assert.All(items, i => Assert.True(i.Quantity <= i.ReorderLevel));
+    }
+
+    private async Task<ItemDto> CreateItemAsync(string sku)
+    {
+        var response = await _client.PostAsJsonAsync("/api/items", new { name = $"Item {sku}", sku, reorderLevel = 0 });
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var item = await response.Content.ReadFromJsonAsync<ItemDto>();
+        Assert.NotNull(item);
+        return item;
+    }
+
+    private async Task RecordAsync(int itemId, int delta, string reason)
+    {
+        var response = await _client.PostAsJsonAsync($"/api/items/{itemId}/movements", new { delta, reason });
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
     [Fact]

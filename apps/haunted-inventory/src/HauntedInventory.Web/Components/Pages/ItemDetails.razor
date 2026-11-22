@@ -174,7 +174,7 @@ else
             return;
         }
 
-        _movements = await StockMovementsService.GetMovementsAsync(Id, limit: 100, cancellationToken: CancellationToken.None);
+        _movements = (await StockMovementsService.GetMovementsAsync(Id, limit: 100, cancellationToken: CancellationToken.None)).Movements;
     }
 
     private async Task RecordMovementAsync()
@@ -199,7 +199,13 @@ else
         {
             await StockMovementsService.RecordMovementAsync(Id, Form.Delta!.Value, Form.Reason!, Form.Note, CancellationToken.None);
         }
-        catch (InvalidOperationException ex)
+        catch (KeyNotFoundException)
+        {
+            _notFound = true;
+            SetStatus(StatusCodes.Status404NotFound);
+            return;
+        }
+        catch (InsufficientStockException ex)
         {
             _errors.Add($"Not enough stock: {ex.Message}");
             SetStatus(StatusCodes.Status409Conflict);
