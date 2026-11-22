@@ -84,6 +84,48 @@ public class MediumsServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task CreateMedium_DuplicateCyrillicName_DifferentCase_ThrowsConflict()
+    {
+        await CreateAsync("Ведьма");
+
+        await Assert.ThrowsAsync<ConflictException>(() => CreateAsync("ВЕДЬМА"));
+    }
+
+    [Fact]
+    public async Task CreateMedium_UsesClockForCreatedAt()
+    {
+        var created = await CreateAsync("Leota");
+
+        Assert.Equal(SqliteFileDatabase.Now.UtcDateTime, created.CreatedAt);
+    }
+
+    [Fact]
+    public async Task CreateMedium_ConcurrentSameName_ExactlyOneSucceeds()
+    {
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var tasks = Enumerable.Range(0, 10).Select(i => Task.Run(async () =>
+        {
+            await gate.Task;
+            try
+            {
+                await CreateAsync(i % 2 == 0 ? "Leota" : "LEOTA");
+                return true;
+            }
+            catch (ConflictException)
+            {
+                return false;
+            }
+        })).ToArray();
+
+        gate.SetResult();
+        var results = await Task.WhenAll(tasks);
+
+        Assert.Equal(1, results.Count(r => r));
+        await using var db = _database.CreateContext();
+        Assert.Equal(1, await db.Mediums.CountAsync());
+    }
+
+    [Fact]
     public async Task DeactivateMedium_Active_SetsIsActiveFalse()
     {
         var created = await CreateAsync("Leota");

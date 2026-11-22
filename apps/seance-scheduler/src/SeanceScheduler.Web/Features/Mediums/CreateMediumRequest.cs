@@ -21,7 +21,7 @@ public sealed record CreateMediumRequest(string? Name, string? Specialty)
             errors[nameof(Name)] = [$"Name must be at most {NameMaxLength} characters."];
         }
 
-        if (Specialty is { Length: > SpecialtyMaxLength })
+        if (Specialty is not null && Specialty.Trim().Length > SpecialtyMaxLength)
         {
             errors[nameof(Specialty)] = [$"Specialty must be at most {SpecialtyMaxLength} characters."];
         }

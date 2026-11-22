@@ -19,7 +19,7 @@ Medium
 - `Seances: ICollection<Seance>` (one-to-many inverse)
 
 **Constraints & Indices:**
-- Unique index on `Name` (case-insensitive via `COLLATE NOCASE` in SQLite)
+- Unique index on `NormalizedName` (`Name.Trim().ToUpperInvariant()`): case-insensitive for any script — SQLite `COLLATE NOCASE` folds ASCII only (Cyrillic duplicates slipped through). `Name` keeps NOCASE for ordering.
 - Regular index on `IsActive` (for filtering active mediums in UI)
 
 ### Seance Entity

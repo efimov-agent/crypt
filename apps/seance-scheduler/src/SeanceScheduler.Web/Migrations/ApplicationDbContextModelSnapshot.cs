@@ -63,6 +63,11 @@ namespace SeanceScheduler.Web.Migrations
                         .HasColumnType("TEXT")
                         .UseCollation("NOCASE");
 
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Specialty")
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
@@ -71,7 +76,9 @@ namespace SeanceScheduler.Web.Migrations
 
                     b.HasIndex("IsActive");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("Name");
+
+                    b.HasIndex("NormalizedName")
                         .IsUnique();
 
                     b.ToTable("Mediums");

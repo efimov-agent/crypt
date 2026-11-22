@@ -11,7 +11,7 @@ using SeanceScheduler.Web.Data;
 namespace SeanceScheduler.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261122173516_AddSeanceBooking")]
+    [Migration("20261122180235_AddSeanceBooking")]
     partial class AddSeanceBooking
     {
         /// <inheritdoc />
@@ -66,6 +66,11 @@ namespace SeanceScheduler.Web.Migrations
                         .HasColumnType("TEXT")
                         .UseCollation("NOCASE");
 
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Specialty")
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
@@ -74,7 +79,9 @@ namespace SeanceScheduler.Web.Migrations
 
                     b.HasIndex("IsActive");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("Name");
+
+                    b.HasIndex("NormalizedName")
                         .IsUnique();
 
                     b.ToTable("Mediums");

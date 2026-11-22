@@ -18,6 +18,7 @@ namespace SeanceScheduler.Web.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false, collation: "NOCASE"),
+                    NormalizedName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     Specialty = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
                     IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
@@ -60,7 +61,12 @@ namespace SeanceScheduler.Web.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Mediums_Name",
                 table: "Mediums",
-                column: "Name",
+                column: "Name");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Mediums_NormalizedName",
+                table: "Mediums",
+                column: "NormalizedName",
                 unique: true);
 
             migrationBuilder.CreateIndex(

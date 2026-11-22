@@ -173,45 +173,55 @@ public class SeancesService
 
     private void ValidateBookingInput(DateTime startsAtUtc, DateTime endsAtUtc)
     {
-        var errors = new Dictionary<string, string[]>();
+        var errors = new Dictionary<string, List<string>>();
+        void Add(string key, string message)
+        {
+            if (!errors.TryGetValue(key, out var list))
+            {
+                errors[key] = list = [];
+            }
+
+            list.Add(message);
+        }
+
         var now = _timeProvider.GetUtcNow().UtcDateTime;
 
         // Duration validation
         var duration = (endsAtUtc - startsAtUtc).TotalMinutes;
         if (duration < CreateSeanceRequest.MinDurationMinutes)
         {
-            errors[nameof(Seance.EndsAt)] = [$"Duration must be at least {CreateSeanceRequest.MinDurationMinutes} minutes."];
+            Add(nameof(Seance.EndsAt), $"Duration must be at least {CreateSeanceRequest.MinDurationMinutes} minutes.");
         }
         else if (duration > CreateSeanceRequest.MaxDurationMinutes)
         {
-            errors[nameof(Seance.EndsAt)] = [$"Duration must be at most {CreateSeanceRequest.MaxDurationMinutes} minutes."];
+            Add(nameof(Seance.EndsAt), $"Duration must be at most {CreateSeanceRequest.MaxDurationMinutes} minutes.");
         }
         else if (duration % CreateSeanceRequest.DurationIncrementMinutes != 0)
         {
-            errors[nameof(Seance.EndsAt)] = [$"Duration must be a multiple of {CreateSeanceRequest.DurationIncrementMinutes} minutes."];
+            Add(nameof(Seance.EndsAt), $"Duration must be a multiple of {CreateSeanceRequest.DurationIncrementMinutes} minutes.");
         }
 
         // 15-minute boundary validation
         if (!UtcTime.IsOnBoundary(startsAtUtc, CreateSeanceRequest.DurationIncrementMinutes))
         {
-            errors[nameof(Seance.StartsAt)] = ["Start time must be on a 15-minute boundary (e.g., 14:00, 14:15, 14:30, 14:45)."];
+            Add(nameof(Seance.StartsAt), "Start time must be on a 15-minute boundary (e.g., 14:00, 14:15, 14:30, 14:45).");
         }
 
         // Future start time validation
         if (startsAtUtc <= now)
         {
-            errors[nameof(Seance.StartsAt)] = ["Start time must be in the future."];
+            Add(nameof(Seance.StartsAt), "Start time must be in the future.");
         }
 
         // Future end time validation
         if (endsAtUtc <= now)
         {
-            errors[nameof(Seance.EndsAt)] = ["End time must be in the future."];
+            Add(nameof(Seance.EndsAt), "End time must be in the future.");
         }
 
         if (errors.Count > 0)
         {
-            throw new ValidationException(errors);
+            throw new ValidationException(errors.ToDictionary(kv => kv.Key, kv => kv.Value.ToArray()));
         }
     }
 }

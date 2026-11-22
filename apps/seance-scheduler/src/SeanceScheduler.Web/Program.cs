@@ -10,6 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddRazorComponents();
 builder.Services.AddEndpointsApiExplorer();
+// RFC 9457 bodies for API errors that never reach an endpoint (binding failures, unhandled exceptions)
+builder.Services.AddProblemDetails();
 
 // App_Data holds the SQLite database and Data Protection keys (a volume in Docker)
 var dataDir = Path.Combine(builder.Environment.ContentRootPath, "App_Data");
@@ -40,12 +42,30 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await db.Database.MigrateAsync();
+    // WAL lets readers proceed while a booking transaction holds the write lock (persistent per DB file)
+    await db.Database.ExecuteSqlRawAsync("PRAGMA journal_mode=WAL;");
 }
 
 // Configure the HTTP request pipeline
+// API requests get application/problem+json for unhandled exceptions and empty error responses;
+// pages keep the HTML error page.
+app.UseWhen(
+    context => context.Request.Path.StartsWithSegments("/api"),
+    branch =>
+    {
+        branch.UseExceptionHandler(new ExceptionHandlerOptions
+        {
+            // Binding failures (bad query value, malformed JSON) are client errors, not 500s
+            StatusCodeSelector = ex => ex is BadHttpRequestException bad ? bad.StatusCode : StatusCodes.Status500InternalServerError,
+        });
+        branch.UseStatusCodePages();
+    });
+
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    app.UseWhen(
+        context => !context.Request.Path.StartsWithSegments("/api"),
+        branch => branch.UseExceptionHandler("/Error", createScopeForErrors: true));
     app.UseHsts();
 }
 

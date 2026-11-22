@@ -232,11 +232,31 @@ public class SeancesEndpointTests : IClassFixture<TestDatabaseFixture>
     [Theory]
     [InlineData("?mediumId=abc")]
     [InlineData("?from=not-a-date")]
-    public async Task List_UnparsableQuery_Returns400(string query)
+    public async Task List_UnparsableQuery_Returns400ProblemJson(string query)
     {
         var response = await _client.GetAsync($"/api/seances{query}");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
+    public async Task Create_NullMediumId_Returns400ProblemJson()
+    {
+        var response = await _client.PostAsync("/api/seances",
+            new StringContent("{\"mediumId\":null}", System.Text.Encoding.UTF8, "application/json"));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
+    public async Task UnknownApiRoute_Returns404ProblemJson()
+    {
+        var response = await _client.GetAsync("/api/does-not-exist");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
     }
 
     [Fact]

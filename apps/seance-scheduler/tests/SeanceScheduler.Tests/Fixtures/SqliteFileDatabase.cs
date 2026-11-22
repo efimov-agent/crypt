@@ -27,7 +27,7 @@ public sealed class SqliteFileDatabase : IAsyncLifetime
             .Options);
 
     public MediumsService CreateMediumsService(ApplicationDbContext db) =>
-        new(db, NullLogger<MediumsService>.Instance);
+        new(db, Clock, NullLogger<MediumsService>.Instance);
 
     public SeancesService CreateSeancesService(ApplicationDbContext db) =>
         new(db, Clock, NullLogger<SeancesService>.Instance);

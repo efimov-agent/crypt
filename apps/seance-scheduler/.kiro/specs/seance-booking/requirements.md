@@ -86,7 +86,7 @@ SeanceScheduler enables a small spiritualist parlour to schedule seances with av
 - GIVEN a request to list seances with optional filters (`mediumId`, `from` date, `to` date)
 - WHEN the system retrieves seances
 - THE SYSTEM SHALL return seances ordered by `StartsAt` ascending, then by `Id` ascending
-- THE SYSTEM SHALL apply all filters: if `mediumId` is provided, only seances for that medium; if `from` or `to` are provided, only seances within that date range
+- THE SYSTEM SHALL apply all filters: if `mediumId` is provided, only seances for that medium; if `from` or `to` are provided, only seances whose `StartsAt` lies within [`from`, `to`] (inclusive; a seance that started before `from` is not included)
 - GIVEN a request for seances with invalid query parameters
 - WHEN the system processes the request
 - THE SYSTEM SHALL respond with 400 Bad Request and validation messages

@@ -9,11 +9,13 @@ namespace SeanceScheduler.Web.Features.Mediums;
 public class MediumsService
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly TimeProvider _timeProvider;
     private readonly ILogger<MediumsService> _logger;
 
-    public MediumsService(ApplicationDbContext dbContext, ILogger<MediumsService> logger)
+    public MediumsService(ApplicationDbContext dbContext, TimeProvider timeProvider, ILogger<MediumsService> logger)
     {
         _dbContext = dbContext;
+        _timeProvider = timeProvider;
         _logger = logger;
     }
 
@@ -48,9 +50,11 @@ public class MediumsService
         var trimmedName = name.Trim();
         var trimmedSpecialty = string.IsNullOrWhiteSpace(specialty) ? null : specialty.Trim();
 
-        // Check for duplicate name (case-insensitive)
+        var normalizedName = Medium.Normalize(trimmedName);
+
+        // Duplicate check is case-insensitive for any script (the unique index on NormalizedName backs it up)
         var existingMedium = await _dbContext.Mediums
-            .FirstOrDefaultAsync(m => m.Name == trimmedName, cancellationToken);
+            .FirstOrDefaultAsync(m => m.NormalizedName == normalizedName, cancellationToken);
 
         if (existingMedium != null)
         {
@@ -61,9 +65,10 @@ public class MediumsService
         var medium = new Medium
         {
             Name = trimmedName,
+            NormalizedName = normalizedName,
             Specialty = trimmedSpecialty,
             IsActive = true,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = _timeProvider.GetUtcNow().UtcDateTime
         };
 
         _dbContext.Mediums.Add(medium);

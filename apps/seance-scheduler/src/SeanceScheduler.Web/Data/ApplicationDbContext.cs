@@ -34,7 +34,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasConversion(v => UtcTime.Normalize(v), v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
             entity.Property(e => e.UpdatedAt)
-                .HasConversion(v => v.HasValue ? v.Value.ToUniversalTime() : v,
+                .HasConversion(v => UtcTime.Normalize(v),
                                v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
         });
 
@@ -45,12 +45,16 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(100)
-                .UseCollation("NOCASE"); // ASCII case-insensitive uniqueness, enforced by the database
+                .UseCollation("NOCASE"); // case-insensitive ordering (ASCII)
+            entity.Property(e => e.NormalizedName)
+                .IsRequired()
+                .HasMaxLength(100);
             entity.Property(e => e.Specialty)
                 .HasMaxLength(200);
-            // Unique index on Name (case-insensitive via COLLATE NOCASE in SQLite)
-            entity.HasIndex(e => e.Name)
+            // Uniqueness is enforced on the invariant upper-cased name: SQLite NOCASE only folds ASCII.
+            entity.HasIndex(e => e.NormalizedName)
                 .IsUnique();
+            entity.HasIndex(e => e.Name);
             // Index on IsActive for filtering
             entity.HasIndex(e => e.IsActive);
             // UTC conversion for CreatedAt
@@ -87,7 +91,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasConversion(v => UtcTime.Normalize(v), v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
             entity.Property(e => e.CancelledAt)
-                .HasConversion(v => v.HasValue ? v.Value.ToUniversalTime() : v,
+                .HasConversion(v => UtcTime.Normalize(v),
                                v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
         });
     }

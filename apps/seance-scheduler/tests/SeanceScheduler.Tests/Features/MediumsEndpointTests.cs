@@ -104,6 +104,27 @@ public class MediumsEndpointTests : IClassFixture<TestDatabaseFixture>
     }
 
     [Fact]
+    public async Task CreateMedium_DuplicateCyrillicName_Returns409()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        await CreateAsync($"Ведьма {suffix}");
+
+        var response = await _client.PostAsJsonAsync("/api/mediums", new { name = $"ВЕДЬМА {suffix}" });
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateMedium_MalformedJson_Returns400ProblemJson()
+    {
+        var response = await _client.PostAsync("/api/mediums",
+            new StringContent("{\"name\":", System.Text.Encoding.UTF8, "application/json"));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
     public async Task CreateMedium_NameTooLong_Returns400()
     {
         var response = await _client.PostAsJsonAsync("/api/mediums", new { name = new string('x', 101) });

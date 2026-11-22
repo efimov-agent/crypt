@@ -34,6 +34,7 @@ public class CreateMediumRequestTests
     public void Validate_SpecialtyOverLimit_ReturnsSpecialtyError()
     {
         Assert.Empty(new CreateMediumRequest("Leota", new string('s', 200)).Validate());
+        Assert.Empty(new CreateMediumRequest("Leota", $"  {new string('s', 200)}  ").Validate());
         Assert.Equal(["Specialty"], new CreateMediumRequest("Leota", new string('s', 201)).Validate().Keys);
     }
 }

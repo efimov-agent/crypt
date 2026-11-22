@@ -71,45 +71,45 @@
 
 ## Phase 3: DTOs & Request Validation
 
-- [ ] 8. Create request DTOs
-  - [ ] 8.1 Add `src/SeanceScheduler.Web/Features/Mediums/CreateMediumRequest.cs` as sealed record with Name? and Specialty?
-  - [ ] 8.2 Implement `Validate()` → Dict<string, string[]> with errors for missing name, too long (>100), specialty too long (>200)
-  - [ ] 8.3 Add `src/SeanceScheduler.Web/Features/Seances/CreateSeanceRequest.cs` as sealed record with MediumId, ClientName?, StartsAt, EndsAt
-  - [ ] 8.4 Implement `Validate()` → Dict<string, string[]> with errors for missing/too-long ClientName, invalid duration, off-boundary start, past start, invalid date format
+- [x] 8. Create request DTOs
+  - [x] 8.1 Add `src/SeanceScheduler.Web/Features/Mediums/CreateMediumRequest.cs` as sealed record with Name? and Specialty?
+  - [x] 8.2 Implement `Validate()` → Dict<string, string[]> with errors for missing name, too long (>100), specialty too long (>200)
+  - [x] 8.3 Add `src/SeanceScheduler.Web/Features/Seances/CreateSeanceRequest.cs` as sealed record with MediumId, ClientName?, StartsAt, EndsAt
+  - [x] 8.4 Implement `Validate()` → Dict<string, string[]> with errors for missing/too-long ClientName, invalid duration, off-boundary start, past start, invalid date format
   - _Requirements: 1.0, 2.0_
 
-- [ ] 9. Create response DTOs
-  - [ ] 9.1 Add `src/SeanceScheduler.Web/Features/Mediums/MediumDto.cs` as sealed record (Id, Name, Specialty?, IsActive, CreatedAt)
-  - [ ] 9.2 Add `src/SeanceScheduler.Web/Features/Seances/SeanceDto.cs` as sealed record (Id, MediumId, ClientName, StartsAt, EndsAt, Status, CreatedAt, CancelledAt?)
-  - [ ] 9.3 Add mapping helpers if needed (e.g., `ToDto()` extension methods)
+- [x] 9. Create response DTOs
+  - [x] 9.1 Add `src/SeanceScheduler.Web/Features/Mediums/MediumDto.cs` as sealed record (Id, Name, Specialty?, IsActive, CreatedAt)
+  - [x] 9.2 Add `src/SeanceScheduler.Web/Features/Seances/SeanceDto.cs` as sealed record (Id, MediumId, ClientName, StartsAt, EndsAt, Status, CreatedAt, CancelledAt?)
+  - [x] 9.3 Add mapping helpers if needed (e.g., `ToDto()` extension methods)
   - _Requirements: 1.0, 2.0_
 
 ## Phase 4: API Endpoints
 
-- [ ] 10. Create Mediums API endpoints
-  - [ ] 10.1 Add `src/SeanceScheduler.Web/Features/Mediums/MediumsEndpoints.cs`
-  - [ ] 10.2 Implement `MapMediumsEndpoints(this WebApplication app)`
-  - [ ] 10.3 Add `GET /api/mediums` → returns all MediumDto ordered by Name
-  - [ ] 10.4 Add `GET /api/mediums/{id:int}` → returns MediumDto or 404 ProblemDetails
-  - [ ] 10.5 Add `POST /api/mediums` → accept CreateMediumRequest, validate, call service, return 201 with Location header or 400/409 ProblemDetails
-  - [ ] 10.6 Add `POST /api/mediums/{id:int}/deactivate` → call service, return 200 or 404 ProblemDetails
-  - [ ] 10.7 Add ILogger logging for each endpoint
+- [x] 10. Create Mediums API endpoints
+  - [x] 10.1 Add `src/SeanceScheduler.Web/Features/Mediums/MediumsEndpoints.cs`
+  - [x] 10.2 Implement `MapMediumsEndpoints(this WebApplication app)`
+  - [x] 10.3 Add `GET /api/mediums` → returns all MediumDto ordered by Name
+  - [x] 10.4 Add `GET /api/mediums/{id:int}` → returns MediumDto or 404 ProblemDetails
+  - [x] 10.5 Add `POST /api/mediums` → accept CreateMediumRequest, validate, call service, return 201 with Location header or 400/409 ProblemDetails
+  - [x] 10.6 Add `POST /api/mediums/{id:int}/deactivate` → call service, return 200 or 404 ProblemDetails
+  - [x] 10.7 Add ILogger logging for each endpoint
   - _Requirements: 1.0, 1.1, 1.2, 1.3, 1.4, Error Handling_
 
-- [ ] 11. Create Seances API endpoints
-  - [ ] 11.1 Add `src/SeanceScheduler.Web/Features/Seances/SeancesEndpoints.cs`
-  - [ ] 11.2 Implement `MapSeancesEndpoints(this WebApplication app)`
-  - [ ] 11.3 Add `GET /api/seances` with query filters (mediumId, from, to) → returns List<SeanceDto> ordered by StartsAt/Id or 400 ProblemDetails
-  - [ ] 11.4 Add `POST /api/seances` → accept CreateSeanceRequest, validate, call service, return 201 with Location header or 400/404/409 ProblemDetails
-  - [ ] 11.5 Add `POST /api/seances/{id:int}/cancel` → call service, return 200 or 404/409 ProblemDetails
-  - [ ] 11.6 Add ILogger logging for each endpoint
+- [x] 11. Create Seances API endpoints
+  - [x] 11.1 Add `src/SeanceScheduler.Web/Features/Seances/SeancesEndpoints.cs`
+  - [x] 11.2 Implement `MapSeancesEndpoints(this WebApplication app)`
+  - [x] 11.3 Add `GET /api/seances` with query filters (mediumId, from, to) → returns List<SeanceDto> ordered by StartsAt/Id or 400 ProblemDetails
+  - [x] 11.4 Add `POST /api/seances` → accept CreateSeanceRequest, validate, call service, return 201 with Location header or 400/404/409 ProblemDetails
+  - [x] 11.5 Add `POST /api/seances/{id:int}/cancel` → call service, return 200 or 404/409 ProblemDetails
+  - [x] 11.6 Add ILogger logging for each endpoint
   - _Requirements: 2.0, 2.1, 2.2, 2.3, 2.4, Error Handling_
 
-- [ ] 12. Register services and endpoints in Program.cs
-  - [ ] 12.1 Add `builder.Services.AddScoped<MediumsService>()`
-  - [ ] 12.2 Add `builder.Services.AddScoped<SeancesService>()`
-  - [ ] 12.3 Inject and register TimeProvider (use `builder.Services.AddSingleton(TimeProvider.System)`)
-  - [ ] 12.4 Call `app.MapMediumsEndpoints()` and `app.MapSeancesEndpoints()` after routing setup
+- [x] 12. Register services and endpoints in Program.cs
+  - [x] 12.1 Add `builder.Services.AddScoped<MediumsService>()`
+  - [x] 12.2 Add `builder.Services.AddScoped<SeancesService>()`
+  - [x] 12.3 Inject and register TimeProvider (use `builder.Services.AddSingleton(TimeProvider.System)`)
+  - [x] 12.4 Call `app.MapMediumsEndpoints()` and `app.MapSeancesEndpoints()` after routing setup
   - _Requirements: 1.0, 2.0_
 
 ## Phase 5: Service Layer Tests

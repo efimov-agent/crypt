@@ -125,6 +125,16 @@ public class SeancesServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Book_PastAndOffGrid_ReportsBothStartErrors()
+    {
+        var start = SqliteFileDatabase.Now.UtcDateTime.AddHours(-2).AddMinutes(10);
+
+        var ex = await Assert.ThrowsAsync<ValidationException>(() => BookAsync(start, start.AddMinutes(30)));
+
+        Assert.Equal(2, ex.Errors["StartsAt"].Length);
+    }
+
+    [Fact]
     public async Task Book_StartExactlyNow_ThrowsValidation()
     {
         var now = SqliteFileDatabase.Now.UtcDateTime;
