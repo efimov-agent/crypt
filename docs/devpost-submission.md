@@ -1,13 +1,13 @@
 # Devpost submission — Kiroween 2026
 
-Copy-paste material for the Devpost form. Placeholder: `<VIDEO_URL>` — fill in after the video upload.
+Copy-paste material for the Devpost form. Video: https://youtu.be/NZU6Wo-uqhM
 
 - **Project name:** Crypt — a Kiro-ready .NET skeleton
 - **Category:** Skeleton Crew
 - **Tagline (≤200 chars):** A `dotnet new` template that ships with Kiro steering, custom agents and guard-rail hooks — proven by two haunted business apps built from it with Kiro specs.
 - **Repository:** https://github.com/efimov-agent/crypt (MIT, `/.kiro` at the root)
 - **Live apps:** Haunted Inventory https://haunted.efimomax-sandbox.de, Seance Scheduler https://seance.efimomax-sandbox.de (no login needed)
-- **Video:** `<VIDEO_URL>`
+- **Video:** https://youtu.be/NZU6Wo-uqhM
 - **Built with:** kiro, kiro-cli, csharp, dotnet, asp.net-core, blazor, entity-framework-core, sqlite, xunit, playwright, docker
 
 ---
