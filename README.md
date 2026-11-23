@@ -8,6 +8,8 @@ layout and the rules — and the hooks keep it honest (tests run when the agent 
 edits of generated EF migration files are blocked in Kiro CLI and flagged in Kiro IDE).
 Each app built from it adds its own Kiro spec.
 
+**Demo video (2:20):** https://youtu.be/NZU6Wo-uqhM
+
 Two distinct apps were built from the same skeleton to show its versatility:
 
 | Folder | App | What it shows |
